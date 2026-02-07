@@ -2,9 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Building2, Calendar, User, MoreHorizontal, BarChart3, FileSpreadsheet, LogOut, X } from "lucide-react";
+import { Home, Building2, Calendar, User, MoreHorizontal, BarChart3, FileSpreadsheet, LogOut, X, CalendarDays } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
@@ -17,11 +17,17 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [roomsSubOpen, setRoomsSubOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+  const roomsSubRef = useRef<HTMLDivElement>(null);
   const userRole = (session?.user as { role?: string })?.role;
   const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
+
+  const isOnRooms = pathname === "/rooms" || pathname.startsWith("/rooms/");
+  const currentTab = searchParams.get("tab") === "schedule" ? "schedule" : "rooms";
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -35,14 +41,37 @@ export function BottomNav() {
   }, [moreOpen]);
 
   useEffect(() => {
+    if (!roomsSubOpen) return;
+    const handler = (e: PointerEvent) => {
+      if (roomsSubRef.current && !roomsSubRef.current.contains(e.target as Node)) {
+        setRoomsSubOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", handler);
+    return () => document.removeEventListener("pointerdown", handler);
+  }, [roomsSubOpen]);
+
+  useEffect(() => {
     setMoreOpen(false);
-  }, [pathname]);
+    setRoomsSubOpen(false);
+  }, [pathname, searchParams]);
+
+  const handleRoomsTap = (e: React.MouseEvent) => {
+    if (isOnRooms) {
+      e.preventDefault();
+      setRoomsSubOpen(!roomsSubOpen);
+      setMoreOpen(false);
+    } else {
+      setRoomsSubOpen(false);
+    }
+  };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden" ref={moreRef}>
+    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
       <AnimatePresence>
         {moreOpen && (
           <motion.div
+            ref={moreRef}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}
@@ -94,16 +123,65 @@ export function BottomNav() {
             </div>
           </motion.div>
         )}
+
+        {roomsSubOpen && (
+          <motion.div
+            ref={roomsSubRef}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            transition={{ type: "spring", bounce: 0.15, duration: 0.35 }}
+            className="mx-3 mb-2"
+          >
+            <div className="flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/80 px-3 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:border-zinc-700/50 dark:bg-zinc-900/80">
+              <Link
+                href="/rooms"
+                onClick={() => setRoomsSubOpen(false)}
+                className={cn(
+                  "flex flex-col items-center gap-0.5 rounded-xl px-5 py-1.5 text-[10px] font-medium transition-all duration-200",
+                  currentTab === "rooms"
+                    ? "bg-violet-100/80 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400"
+                    : "text-zinc-500 active:bg-zinc-100 dark:text-zinc-400 dark:active:bg-zinc-800"
+                )}
+              >
+                <Building2 className="h-5 w-5" />
+                Rooms
+              </Link>
+              <Link
+                href="/rooms?tab=schedule"
+                onClick={() => setRoomsSubOpen(false)}
+                className={cn(
+                  "flex flex-col items-center gap-0.5 rounded-xl px-5 py-1.5 text-[10px] font-medium transition-all duration-200",
+                  currentTab === "schedule"
+                    ? "bg-violet-100/80 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400"
+                    : "text-zinc-500 active:bg-zinc-100 dark:text-zinc-400 dark:active:bg-zinc-800"
+                )}
+              >
+                <CalendarDays className="h-5 w-5" />
+                Schedule
+              </Link>
+              <button
+                onClick={() => setRoomsSubOpen(false)}
+                className="ml-1 flex h-7 w-7 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <div className="mx-3 mb-3">
         <nav className="flex items-center justify-around rounded-2xl border border-white/20 bg-white/70 px-1 py-1.5 shadow-xl shadow-black/5 backdrop-blur-xl dark:border-zinc-700/50 dark:bg-zinc-900/70">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+            const isRoomsItem = item.href === "/rooms";
+
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={isRoomsItem ? handleRoomsTap : undefined}
                 className={cn(
                   "relative flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-[10px] font-medium transition-all duration-200",
                   isActive
@@ -124,7 +202,7 @@ export function BottomNav() {
             );
           })}
           <button
-            onClick={() => setMoreOpen(!moreOpen)}
+            onClick={() => { setMoreOpen(!moreOpen); setRoomsSubOpen(false); }}
             className={cn(
               "relative flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-[10px] font-medium transition-all duration-200",
               moreOpen

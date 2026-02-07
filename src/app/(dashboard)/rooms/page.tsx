@@ -99,8 +99,12 @@ function getTimeProgress(startTime: string, endTime: string): number {
 
 export default function RoomsPage() {
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get("tab") === "schedule" ? "schedule" : "rooms";
-  const [activeTab, setActiveTab] = useState<"rooms" | "schedule">(initialTab);
+  const tabParam = searchParams.get("tab") === "schedule" ? "schedule" : "rooms";
+  const [activeTab, setActiveTab] = useState<"rooms" | "schedule">(tabParam);
+
+  useEffect(() => {
+    setActiveTab(tabParam);
+  }, [tabParam]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
@@ -110,7 +114,7 @@ export default function RoomsPage() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-end"
+        className="hidden items-center justify-end md:flex"
       >
         <div className="flex rounded-xl border border-zinc-200/80 bg-white/80 p-1 backdrop-blur-sm dark:border-zinc-700/60 dark:bg-zinc-800/80">
           {(["rooms", "schedule"] as const).map((tab) => (
