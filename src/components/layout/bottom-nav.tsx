@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Home, CalendarPlus, Calendar, User, BarChart3 } from "lucide-react";
+import { Home, CalendarPlus, CalendarClock, Calendar, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Home" },
   { href: "/book", icon: CalendarPlus, label: "Book" },
-  { href: "/schedule", icon: Calendar, label: "Schedule" },
-  { href: "/analytics", icon: BarChart3, label: "Analytics" },
+  { href: "/schedules", icon: CalendarClock, label: "Rooms" },
+  { href: "/schedule", icon: Calendar, label: "Mine" },
   { href: "/profile", icon: User, label: "Profile" },
 ];
 

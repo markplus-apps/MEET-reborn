@@ -21,6 +21,7 @@ src/
 │   ├── (dashboard)/          # Protected routes with AppShell layout
 │   │   ├── dashboard/        # Main dashboard with stats bento grid
 │   │   ├── book/             # Room listing + [roomId] timeline booking
+│   │   ├── schedules/        # Room Schedules - all rooms/bookings daily view
 │   │   ├── schedule/         # User's bookings with modify/extend/cancel
 │   │   ├── analytics/        # Room usage analytics (recharts)
 │   │   ├── admin/sync/       # Legacy Google Sheets sync (admin only)

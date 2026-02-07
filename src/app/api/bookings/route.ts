@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
     const wibDate = toZonedTime(date, TIMEZONE);
     const dayStart = fromZonedTime(startOfDay(wibDate), TIMEZONE);
     const dayEnd = fromZonedTime(endOfDay(wibDate), TIMEZONE);
-    where.startTime = { gte: dayStart };
-    where.endTime = { lte: dayEnd };
+    where.startTime = { lt: dayEnd };
+    where.endTime = { gt: dayStart };
   }
 
   const bookings = await prisma.booking.findMany({

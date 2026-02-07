@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, CalendarPlus, Calendar, User, ChevronLeft, ChevronRight, LogOut, BarChart3, FileSpreadsheet } from "lucide-react";
+import { Home, CalendarPlus, Calendar, CalendarClock, User, ChevronLeft, ChevronRight, LogOut, BarChart3, FileSpreadsheet } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Home" },
   { href: "/book", icon: CalendarPlus, label: "Book Room" },
+  { href: "/schedules", icon: CalendarClock, label: "Room Schedules" },
   { href: "/schedule", icon: Calendar, label: "My Schedule" },
   { href: "/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/profile", icon: User, label: "Profile" },
