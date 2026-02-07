@@ -12,11 +12,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="hidden md:block">
           <Header />
         </div>
-        <main className="flex-1 overflow-y-auto pb-28 md:pb-0 safe-bottom">
+        <main className="flex-1 overflow-y-auto md:pb-0 safe-bottom">
           <div className="md:hidden">
             <Header />
           </div>
           {children}
+          <div className="h-24 md:hidden" aria-hidden="true" />
         </main>
       </div>
       <BottomNav />

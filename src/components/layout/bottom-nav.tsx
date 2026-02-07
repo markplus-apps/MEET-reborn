@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Building2, Calendar, User, MoreHorizontal, BarChart3, FileSpreadsheet, LogOut, X, CalendarDays, Users } from "lucide-react";
+import { Home, Building2, Calendar, User, MoreHorizontal, BarChart3, FileSpreadsheet, LogOut, X, CalendarDays, Users, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -21,14 +21,47 @@ export function BottomNav() {
   const { data: session } = useSession();
   const [moreOpen, setMoreOpen] = useState(false);
   const [roomsSubOpen, setRoomsSubOpen] = useState(false);
+  const [navVisible, setNavVisible] = useState(true);
   const moreRef = useRef<HTMLDivElement>(null);
   const roomsSubRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
+  const scrollThreshold = 8;
   const userRole = (session?.user as { role?: string })?.role;
   const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
   const isSuperAdmin = userRole === "SUPER_ADMIN";
 
   const isOnRooms = pathname === "/rooms" || pathname.startsWith("/rooms/");
   const currentTab = searchParams.get("tab") === "schedule" ? "schedule" : "rooms";
+
+  useEffect(() => {
+    const mainEl = document.querySelector("main");
+    if (!mainEl) return;
+
+    const handleScroll = () => {
+      const currentY = mainEl.scrollTop;
+      const diff = currentY - lastScrollY.current;
+
+      if (diff > scrollThreshold && currentY > 60) {
+        setNavVisible(false);
+        setMoreOpen(false);
+        setRoomsSubOpen(false);
+      } else if (diff < -scrollThreshold) {
+        setNavVisible(true);
+      }
+
+      lastScrollY.current = currentY;
+    };
+
+    mainEl.addEventListener("scroll", handleScroll, { passive: true });
+    return () => mainEl.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    const mainEl = document.querySelector("main");
+    if (mainEl) {
+      mainEl.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, []);
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -68,7 +101,11 @@ export function BottomNav() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
+    <motion.div
+      className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
+      animate={{ y: navVisible ? 0 : 120 }}
+      transition={{ type: "spring", bounce: 0.1, duration: 0.4 }}
+    >
       <AnimatePresence>
         {moreOpen && (
           <motion.div
@@ -188,6 +225,13 @@ export function BottomNav() {
       </AnimatePresence>
 
       <div className="mx-3 mb-3">
+        <button
+          onClick={scrollToTop}
+          className="mx-auto mb-1 flex items-center gap-1 rounded-full bg-violet-500/10 px-3 py-0.5 text-[9px] font-semibold text-violet-500 backdrop-blur-sm transition-all active:bg-violet-500/20 dark:text-violet-400"
+        >
+          <ChevronUp className="h-3 w-3" />
+          back to top
+        </button>
         <nav className="flex items-center justify-around rounded-2xl border border-white/20 bg-white/70 px-1 py-1.5 shadow-xl shadow-black/5 backdrop-blur-xl dark:border-zinc-700/50 dark:bg-zinc-900/70">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -238,6 +282,6 @@ export function BottomNav() {
           </button>
         </nav>
       </div>
-    </div>
+    </motion.div>
   );
 }

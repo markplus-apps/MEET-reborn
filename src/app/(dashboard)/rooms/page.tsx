@@ -103,6 +103,7 @@ export default function RoomsPage() {
   const [activeTab, setActiveTab] = useState<"rooms" | "schedule">(tabParam);
   const [desktopSearch, setDesktopSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [dateStripVisible, setDateStripVisible] = useState(true);
 
   useEffect(() => {
     setActiveTab(tabParam);
@@ -198,8 +199,8 @@ export default function RoomsPage() {
             exit={{ opacity: 0, x: -10 }}
             transition={{ duration: 0.2 }}
           >
-            <ScheduleTab mounted={mounted} selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
-            <MobileDateStrip selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+            <ScheduleTab mounted={mounted} selectedDate={selectedDate} setSelectedDate={setSelectedDate} dateStripVisible={dateStripVisible} setDateStripVisible={setDateStripVisible} />
+            <MobileDateStrip selectedDate={selectedDate} setSelectedDate={setSelectedDate} visible={dateStripVisible} setVisible={setDateStripVisible} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -390,8 +391,9 @@ function RoomCard({ room, index }: { room: RoomData; index: number }) {
   );
 }
 
-function MobileDateStrip({ selectedDate, setSelectedDate }: { selectedDate: Date; setSelectedDate: React.Dispatch<React.SetStateAction<Date>> }) {
+function MobileDateStrip({ selectedDate, setSelectedDate, visible, setVisible }: { selectedDate: Date; setSelectedDate: React.Dispatch<React.SetStateAction<Date>>; visible: boolean; setVisible: React.Dispatch<React.SetStateAction<boolean>> }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
   const [dateRange, setDateRange] = useState(() => {
     const today = startOfDay(new Date());
     return Array.from({ length: 15 }, (_, i) => addDays(today, i - 7));
@@ -401,15 +403,45 @@ function MobileDateStrip({ selectedDate, setSelectedDate }: { selectedDate: Date
   const dayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
   useEffect(() => {
+    if (!visible) return;
+    let startPos = { x: 0, y: 0 };
+    let isTap = true;
+
+    const onDown = (e: PointerEvent) => {
+      startPos = { x: e.clientX, y: e.clientY };
+      isTap = true;
+    };
+    const onMove = (e: PointerEvent) => {
+      const dx = Math.abs(e.clientX - startPos.x);
+      const dy = Math.abs(e.clientY - startPos.y);
+      if (dx > 10 || dy > 10) isTap = false;
+    };
+    const onUp = (e: PointerEvent) => {
+      if (isTap && stripRef.current && !stripRef.current.contains(e.target as Node)) {
+        setVisible(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+    };
+  }, [visible, setVisible]);
+
+  useEffect(() => {
     const el = scrollRef.current;
-    if (!el) return;
+    if (!el || !visible) return;
     const selectedIdx = dateRange.findIndex((d) => isSameDay(d, selectedDate));
     if (selectedIdx === -1) return;
-    const itemWidth = 52;
+    const itemWidth = 48;
     const containerWidth = el.clientWidth;
     const scrollTo = selectedIdx * itemWidth - containerWidth / 2 + itemWidth / 2;
     el.scrollTo({ left: Math.max(0, scrollTo), behavior: "smooth" });
-  }, [selectedDate, dateRange]);
+  }, [selectedDate, dateRange, visible]);
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -419,7 +451,7 @@ function MobileDateStrip({ selectedDate, setSelectedDate }: { selectedDate: Date
       const newDates = Array.from({ length: 7 }, (_, i) => addDays(firstDate, -(7 - i)));
       setDateRange((prev) => [...newDates, ...prev]);
       requestAnimationFrame(() => {
-        el.scrollLeft += 7 * 52;
+        el.scrollLeft += 7 * 48;
       });
     }
     if (el.scrollLeft + el.clientWidth > el.scrollWidth - 40) {
@@ -430,71 +462,82 @@ function MobileDateStrip({ selectedDate, setSelectedDate }: { selectedDate: Date
   }, [dateRange]);
 
   return (
-    <div className="fixed bottom-[72px] left-0 right-0 z-35 md:hidden">
-      <div className="mx-3 rounded-2xl border border-white/30 bg-white/75 px-2 py-2 shadow-lg shadow-black/5 backdrop-blur-xl dark:border-zinc-700/40 dark:bg-zinc-900/75">
-        <div className="mb-1.5 flex items-center justify-between px-2">
-          <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-            {format(selectedDate, "MMMM yyyy", { locale: localeId })}
-          </span>
-          {!todayActive && (
-            <button
-              onClick={() => setSelectedDate(new Date())}
-              className="rounded-full bg-violet-500/15 px-2.5 py-0.5 text-[10px] font-bold text-violet-600 transition-colors active:bg-violet-500/25 dark:text-violet-400"
-            >
-              Hari ini
-            </button>
-          )}
-        </div>
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="flex gap-0.5 overflow-x-auto"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ type: "spring", bounce: 0.15, duration: 0.35 }}
+          className="fixed bottom-[72px] left-0 right-0 z-35 md:hidden"
+          ref={stripRef}
         >
-          {dateRange.map((date) => {
-            const isSelected = isSameDay(date, selectedDate);
-            const isCurrentDay = isToday(date);
-            return (
-              <button
-                key={date.toISOString()}
-                onClick={() => setSelectedDate(date)}
-                className={cn(
-                  "flex flex-col items-center justify-center rounded-xl px-2 py-1.5 transition-all duration-200 min-w-[44px]",
-                  isSelected
-                    ? "bg-violet-600 text-white shadow-md shadow-violet-500/30 scale-105"
-                    : isCurrentDay
-                    ? "bg-violet-100/60 text-violet-700 dark:bg-violet-800/30 dark:text-violet-400"
-                    : "text-zinc-500 active:bg-zinc-200/50 dark:text-zinc-400 dark:active:bg-zinc-700/50"
-                )}
-              >
-                <span className={cn(
-                  "text-[9px] font-semibold uppercase leading-tight",
-                  isSelected ? "text-violet-200" : isCurrentDay ? "text-violet-500 dark:text-violet-400" : "text-zinc-400 dark:text-zinc-500"
-                )}>
-                  {dayNames[date.getDay()]}
-                </span>
-                <span className={cn(
-                  "text-base font-bold leading-tight",
-                  isSelected ? "text-white" : ""
-                )}>
-                  {format(date, "d")}
-                </span>
-                {isCurrentDay && !isSelected && (
-                  <div className="mt-0.5 h-1 w-1 rounded-full bg-violet-500" />
-                )}
-                {isSelected && (
-                  <div className="mt-0.5 h-1 w-1 rounded-full bg-white/80" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+          <div className="mx-3 rounded-2xl border border-white/20 bg-white/55 px-2 py-2 shadow-lg shadow-black/5 backdrop-blur-2xl dark:border-zinc-700/30 dark:bg-zinc-900/55">
+            <div className="mb-1.5 flex items-center justify-between px-2">
+              <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                {format(selectedDate, "MMMM yyyy", { locale: localeId })}
+              </span>
+              {!todayActive && (
+                <button
+                  onClick={() => setSelectedDate(new Date())}
+                  className="rounded-full bg-violet-500/15 px-2.5 py-0.5 text-[10px] font-bold text-violet-600 transition-colors active:bg-violet-500/25 dark:text-violet-400"
+                >
+                  Hari ini
+                </button>
+              )}
+            </div>
+            <div
+              ref={scrollRef}
+              onScroll={handleScroll}
+              className="flex gap-0.5 overflow-x-auto"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
+            >
+              {dateRange.map((date) => {
+                const isSelected = isSameDay(date, selectedDate);
+                const isCurrentDay = isToday(date);
+                return (
+                  <button
+                    key={date.toISOString()}
+                    onClick={() => setSelectedDate(date)}
+                    className={cn(
+                      "flex flex-col items-center justify-center rounded-xl px-2 py-1.5 transition-all duration-200 min-w-[44px]",
+                      isSelected
+                        ? "bg-violet-600 text-white shadow-md shadow-violet-500/30 scale-105"
+                        : isCurrentDay
+                        ? "bg-violet-100/50 text-violet-700 dark:bg-violet-800/25 dark:text-violet-400"
+                        : "text-zinc-500 active:bg-zinc-200/40 dark:text-zinc-400 dark:active:bg-zinc-700/40"
+                    )}
+                  >
+                    <span className={cn(
+                      "text-[9px] font-semibold uppercase leading-tight",
+                      isSelected ? "text-violet-200" : isCurrentDay ? "text-violet-500 dark:text-violet-400" : "text-zinc-400 dark:text-zinc-500"
+                    )}>
+                      {dayNames[date.getDay()]}
+                    </span>
+                    <span className={cn(
+                      "text-base font-bold leading-tight",
+                      isSelected ? "text-white" : ""
+                    )}>
+                      {format(date, "d")}
+                    </span>
+                    {isCurrentDay && !isSelected && (
+                      <div className="mt-0.5 h-1 w-1 rounded-full bg-violet-500" />
+                    )}
+                    {isSelected && (
+                      <div className="mt-0.5 h-1 w-1 rounded-full bg-white/80" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
-function ScheduleTab({ mounted, selectedDate, setSelectedDate }: { mounted: boolean; selectedDate: Date; setSelectedDate: React.Dispatch<React.SetStateAction<Date>> }) {
+function ScheduleTab({ mounted, selectedDate, setSelectedDate, dateStripVisible, setDateStripVisible }: { mounted: boolean; selectedDate: Date; setSelectedDate: React.Dispatch<React.SetStateAction<Date>>; dateStripVisible: boolean; setDateStripVisible: React.Dispatch<React.SetStateAction<boolean>> }) {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
@@ -636,7 +679,19 @@ function ScheduleTab({ mounted, selectedDate, setSelectedDate }: { mounted: bool
   });
 
   return (
-    <div className={cn("space-y-4", isMobile && "pb-24")}>
+    <div className="space-y-4">
+      {isMobile && !dateStripVisible && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          onClick={() => setDateStripVisible(true)}
+          className="flex items-center gap-1.5 rounded-full border border-violet-200/60 bg-violet-50/80 px-3 py-1.5 text-xs font-semibold text-violet-600 shadow-sm backdrop-blur-sm transition-all active:scale-95 dark:border-violet-700/40 dark:bg-violet-900/20 dark:text-violet-400"
+        >
+          <CalendarIcon className="h-3.5 w-3.5" />
+          {format(selectedDate, "d MMM", { locale: localeId })}
+        </motion.button>
+      )}
+
       {todayActive && activeCount > 0 && (
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 dark:bg-emerald-900/20">
