@@ -84,15 +84,6 @@ export default function MyBookingsPage() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-1"
-      >
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">My Bookings</h1>
-        <p className="text-sm text-zinc-500">View and manage your meeting room bookings</p>
-      </motion.div>
-
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (

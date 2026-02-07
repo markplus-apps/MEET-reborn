@@ -37,15 +37,6 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-1"
-      >
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Analytics</h1>
-        <p className="text-sm text-zinc-500">Room usage statistics for the last 30 days</p>
-      </motion.div>
-
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
           <Card glass className="text-center">

@@ -110,12 +110,8 @@ export default function RoomsPage() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        className="flex items-center justify-end"
       >
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Rooms</h1>
-          <p className="text-sm text-zinc-500">Browse rooms and schedules</p>
-        </div>
         <div className="flex rounded-xl border border-zinc-200/80 bg-white/80 p-1 backdrop-blur-sm dark:border-zinc-700/60 dark:bg-zinc-800/80">
           {(["rooms", "schedule"] as const).map((tab) => (
             <button

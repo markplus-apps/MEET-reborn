@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { syncFromGoogleSheet, syncUsersFromGoogleSheet } from "@/actions/sync";
 import { toast } from "sonner";
 import {
@@ -93,20 +92,6 @@ export default function AdminSyncPage() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-1"
-      >
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Google Sheets Sync</h1>
-          <Badge variant="warning">Admin</Badge>
-        </div>
-        <p className="text-sm text-zinc-500">
-          Two-way sync — data baru dari Google Sheets masuk ke database, data baru dari database dikirim ke Google Sheets
-        </p>
-      </motion.div>
-
       <div className="rounded-xl border border-violet-200/50 bg-violet-50/50 p-4 dark:border-violet-800/30 dark:bg-violet-900/10">
         <div className="flex items-start gap-3">
           <ArrowUpDown className="mt-0.5 h-5 w-5 flex-shrink-0 text-violet-600 dark:text-violet-400" />
