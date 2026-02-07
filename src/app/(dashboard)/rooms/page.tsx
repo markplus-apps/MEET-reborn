@@ -112,7 +112,7 @@ export default function RoomsPage() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  const todayActive = isToday(selectedDate);
+  const todayActive = mounted && isToday(selectedDate);
 
   return (
     <div className="space-y-4 p-4 md:space-y-6 md:p-6">
@@ -142,7 +142,7 @@ export default function RoomsPage() {
                 className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700"
               >
                 <CalendarIcon className="h-3.5 w-3.5" />
-                <span>{format(selectedDate, "EEEE, d MMMM yyyy", { locale: localeId })}</span>
+                <span suppressHydrationWarning>{mounted ? format(selectedDate, "EEEE, d MMMM yyyy", { locale: localeId }) : "\u00A0"}</span>
               </button>
               {!todayActive && (
                 <Button variant="ghost" size="sm" onClick={() => setSelectedDate(new Date())} className="h-8 text-xs text-violet-600 dark:text-violet-400">
@@ -782,11 +782,11 @@ function ScheduleTab({ mounted, selectedDate, setSelectedDate, dateStripVisible,
       </Card>
 
       <div className="text-center">
-        <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-          {format(selectedDate, "EEEE, d MMMM yyyy", { locale: localeId })}
+        <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300" suppressHydrationWarning>
+          {mounted ? format(selectedDate, "EEEE, d MMMM yyyy", { locale: localeId }) : "\u00A0"}
         </p>
         {mounted && todayActive && (
-          <p className="text-xs text-zinc-400">{format(new Date(), "HH:mm")} WIB</p>
+          <p className="text-xs text-zinc-400" suppressHydrationWarning>{format(new Date(), "HH:mm")} WIB</p>
         )}
       </div>
 

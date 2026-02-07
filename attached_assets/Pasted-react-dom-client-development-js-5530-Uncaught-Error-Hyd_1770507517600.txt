@@ -1,0 +1,48 @@
+react-dom-client.development.js:5530 Uncaught Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RedirectBoundary>
+      <RedirectErrorBoundary router={{...}}>
+        <InnerLayoutRouter url="/rooms?tab..." tree={[...]} params={{}} cacheNode={{rsc:<Fragment>, ...}} ...>
+          <SegmentViewNode type="page" pagePath="(dashboard...">
+            <SegmentTrieNode>
+            <ClientPageRoot Component={function RoomsPage} serverProvidedParams={{...}}>
+              <RoomsPage params={Promise} searchParams={Promise}>
+                <div className="space-y-4 ...">
+                  <motion.div initial={{opacity:0,y:-10}} animate={{opacity:1,y:0}} className="hidden ite...">
+                    <div className="hidden ite..." style={{opacity:0, ...}} ref={function useMotionRef.useCallback}>
+                      <div className="flex items...">
+                        <div className="flex items...">
+                          <_c>
+                          <button onClick={function onClick} className="flex items...">
+                            <Calendar>
+                            <span>
++                             Minggu, 8 Februari 2026
+-                             Sabtu, 7 Februari 2026
+                          ...
+                      ...
+                  ...
+          ...
+        ...
+
+    at throwOnHydrationMismatch (react-dom-client.development.js:5530:11)
+    at prepareToHydrateHostInstance (react-dom-client.development.js:5626:21)
+    at completeWork (react-dom-client.development.js:12959:15)
+    at runWithFiberInDEV (react-dom-client.development.js:986:30)
+    at completeUnitOfWork (react-dom-client.development.js:19133:19)
+    at performUnitOfWork (react-dom-client.development.js:19014:11)
+    at workLoopConcurrentByScheduler (react-dom-client.development.js:18991:9)
+    at renderRootConcurrent (react-dom-client.development.js:18973:15)
+    at performWorkOnRoot (react-dom-client.development.js:17834:11)
+    at performWorkOnRootViaSchedulerTask (react-dom-client.development.js:20384:7)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:45:48)
