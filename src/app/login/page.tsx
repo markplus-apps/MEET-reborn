@@ -43,7 +43,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-50 p-4 dark:bg-zinc-950">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-zinc-50 p-4 dark:bg-zinc-950">
       <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-violet-500/15 blur-[100px]" />
       <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-purple-500/15 blur-[100px]" />
       <div className="absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-indigo-500/10 blur-[80px]" />

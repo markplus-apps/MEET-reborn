@@ -224,7 +224,7 @@ export function BottomNav() {
         )}
       </AnimatePresence>
 
-      <div className="mx-3 mb-3">
+      <div className="mx-3 mb-3" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         <button
           onClick={scrollToTop}
           className="mx-auto mb-1 flex items-center gap-1 rounded-full bg-violet-500/10 px-3 py-0.5 text-[9px] font-semibold text-violet-500 backdrop-blur-sm transition-all active:bg-violet-500/20 dark:text-violet-400"

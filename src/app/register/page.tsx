@@ -43,7 +43,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-50 p-4 dark:bg-zinc-950">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-zinc-50 p-4 dark:bg-zinc-950">
       <div className="absolute -left-40 -top-40 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl" />
       <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-purple-500/20 blur-3xl" />
 

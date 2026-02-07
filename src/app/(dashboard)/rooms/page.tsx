@@ -200,7 +200,7 @@ export default function RoomsPage() {
             transition={{ duration: 0.2 }}
           >
             <ScheduleTab mounted={mounted} selectedDate={selectedDate} setSelectedDate={setSelectedDate} dateStripVisible={dateStripVisible} setDateStripVisible={setDateStripVisible} />
-            <MobileDateStrip selectedDate={selectedDate} setSelectedDate={setSelectedDate} visible={dateStripVisible} setVisible={setDateStripVisible} />
+            {mounted && <MobileDateStrip selectedDate={selectedDate} setSelectedDate={setSelectedDate} visible={dateStripVisible} setVisible={setDateStripVisible} />}
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,0 +1,55 @@
+react-dom-client.development.js:5530 Uncaught Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <motion.div initial={{opacity:0,x:10}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-10}} transition={{duration:0.2}}>
+      <div style={{opacity:0, ...}} ref={function useMotionRef.useCallback}>
+        <ScheduleTab>
+        <MobileDateStrip selectedDate={Date} setSelectedDate={function bound dispatchSetState} visible={true} ...>
+          <AnimatePresence>
+            <PresenceChild isPresent={true} initial={undefined} custom={undefined} presenceAffectsLayout={true} ...>
+              <PopChild pop={false} isPresent={true} anchorX="left" anchorY="top" root={undefined}>
+                <PopChildMeasure isPresent={true} childRef={{current:null}} sizeRef={{...}} pop={false}>
+                  <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} exit={{opacity:0,y:20}} ...>
+                    <div className="fixed bott..." style={{opacity:0, ...}} ref={function useMotionRef.useCallback}>
+                      <div className="mx-3 round...">
+                        <div>
+                        <div ref={{current:null}} onScroll={function MobileDateStrip.useCallback[handleScroll]} ...>
+                          <button onClick={function onClick} className="flex flex-...">
+                            <span
+                              className="text-[9px] font-semibold uppercase leading-tight text-zinc-400 dark:text-zinc..."
+                            >
++                             Min
+-                             Sab
+                            ...
+                          ...
+
+    at throwOnHydrationMismatch (react-dom-client.development.js:5530:11)
+    at prepareToHydrateHostInstance (react-dom-client.development.js:5626:21)
+    at completeWork (react-dom-client.development.js:12959:15)
+    at runWithFiberInDEV (react-dom-client.development.js:986:30)
+    at completeUnitOfWork (react-dom-client.development.js:19133:19)
+    at performUnitOfWork (react-dom-client.development.js:19014:11)
+    at workLoopConcurrentByScheduler (react-dom-client.development.js:18991:9)
+    at renderRootConcurrent (react-dom-client.development.js:18973:15)
+    at performWorkOnRoot (react-dom-client.development.js:17834:11)
+    at performWorkOnRootViaSchedulerTask (react-dom-client.development.js:20384:7)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:45:48)
+<span>		
+(anonymous)	@	page.tsx:511
+MobileDateStrip	@	page.tsx:495
+<MobileDateStrip>		
+RoomsPage	@	page.tsx:203
+"use client"		
+Function.all	@	VM32255 <anonymous>:1
+Function.all	@	VM32255 <anonymous>:1
+Function.all	@	VM32255 <anonymous>:1
