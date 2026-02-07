@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, CalendarPlus, Calendar, User, ChevronLeft, ChevronRight, LogOut, Sparkles, BarChart3, FileSpreadsheet } from "lucide-react";
+import { Home, CalendarPlus, Calendar, User, ChevronLeft, ChevronRight, LogOut, BarChart3, FileSpreadsheet } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -45,8 +46,8 @@ export function Sidebar() {
               exit={{ opacity: 0, x: -10 }}
               className="flex items-center gap-2"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 shadow-lg shadow-violet-500/25">
-                <Sparkles className="h-5 w-5 text-white" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-md dark:bg-zinc-800">
+                <Image src="/logo.png" alt="MCorp" width={28} height={28} className="object-contain" />
               </div>
               <div>
                 <h1 className="text-base font-bold tracking-tight text-zinc-900 dark:text-zinc-100">

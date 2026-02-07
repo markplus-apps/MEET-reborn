@@ -202,7 +202,7 @@ export async function syncUsersFromGoogleSheet() {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: "user!A2:E",
+      range: "user!B2:F",
     });
 
     rows = (response.data.values || []) as string[][];

@@ -103,7 +103,7 @@ export default function AdminSyncPage() {
             </p>
             <div className="mt-3 rounded-lg bg-violet-50 p-3 dark:bg-violet-900/20">
               <p className="text-xs text-violet-700 dark:text-violet-400">
-                <strong>Sheet:</strong> &quot;user&quot; | <strong>Columns:</strong> A: Name | B: Email | C: Role | D: Password | E: Created
+                <strong>Sheet:</strong> &quot;user&quot; | <strong>Columns:</strong> B: Name | C: Email | D: Role | E: Password | F: Created
               </p>
             </div>
           </div>

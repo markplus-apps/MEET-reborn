@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -58,9 +59,9 @@ export default function LoginPage() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
-            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 shadow-xl shadow-violet-500/30"
+            className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-white shadow-xl shadow-violet-500/20 dark:bg-zinc-800"
           >
-            <Sparkles className="h-8 w-8 text-white" />
+            <Image src="/logo.png" alt="MCorp Logo" width={56} height={56} className="object-contain" />
           </motion.div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
             Welcome to <span className="gradient-text">MEET</span>
@@ -73,7 +74,7 @@ export default function LoginPage() {
             <Input
               label="Email"
               type="email"
-              placeholder="you@markplus.com"
+              placeholder="you@markplusinc.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -99,10 +100,6 @@ export default function LoginPage() {
             </Link>
           </div>
         </div>
-
-        <p className="mt-6 text-center text-xs text-zinc-400">
-          Demo: admin@markplus.com / admin123
-        </p>
       </motion.div>
     </div>
   );

@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Sun, Moon } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
+import Image from "next/image";
 import { formatWIB } from "@/lib/timezone";
 import { useTheme } from "@/providers/theme-provider";
 
@@ -22,8 +23,8 @@ export function Header() {
     <header className="sticky top-0 z-30 border-b border-zinc-200/60 bg-white/70 backdrop-blur-xl dark:border-zinc-700/60 dark:bg-zinc-900/70">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-3 md:hidden">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 shadow-lg shadow-violet-500/25">
-            <Sparkles className="h-5 w-5 text-white" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-md dark:bg-zinc-800">
+            <Image src="/logo.png" alt="MCorp" width={24} height={24} className="object-contain" />
           </div>
           <div>
             <h1 className="text-base font-bold tracking-tight text-zinc-900 dark:text-zinc-100">MEET</h1>
