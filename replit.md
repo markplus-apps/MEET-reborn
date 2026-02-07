@@ -6,7 +6,7 @@ World-class meeting room booking system built with Next.js 16 App Router + TypeS
 ## Tech Stack
 - **Framework**: Next.js 16.1.6 (App Router, Turbopack)
 - **Language**: TypeScript
-- **Database**: PostgreSQL (Replit built-in, Neon-backed) via Prisma 6
+- **Database**: PostgreSQL (VPS at 145.79.10.104) via Prisma 6 (env: VPS_DATABASE_URL)
 - **Auth**: NextAuth v5 (credentials provider, JWT sessions)
 - **Styling**: Tailwind CSS 4, Framer Motion animations
 - **State**: TanStack Query (per-query polling, not global)
@@ -60,7 +60,7 @@ prisma/
 - **Responsive Modal**: Desktop = centered Dialog, Mobile = Bottom Sheet (vaul Drawer)
 - **Dark Mode**: Class-based toggle with localStorage persistence
 - **Analytics**: Room usage, daily/hourly trends (recharts)
-- **Legacy Sync**: Google Sheets import with batch processing
+- **Google Sheets Sync**: Users sync (sheet "user") + Bookings sync (sheet "Sheet1")
 - **Glassmorphic UI**: backdrop-blur, gradients, animations
 - **Mobile-first**: Bottom nav (mobile), collapsible sidebar (desktop)
 

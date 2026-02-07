@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import bcrypt from "bcryptjs";
 
 export async function syncFromGoogleSheet() {
   const session = await auth();
@@ -161,6 +162,122 @@ export async function syncFromGoogleSheet() {
   return {
     success: true,
     synced,
+    skipped,
+    errors,
+    totalRows: rows.length,
+  };
+}
+
+export async function syncUsersFromGoogleSheet() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Unauthorized" };
+  }
+
+  const userRole = (session.user as { role: string }).role;
+  if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
+    return { error: "Only admins can sync users from Google Sheets" };
+  }
+
+  const sheetId = process.env.GOOGLE_SHEET_ID;
+  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY;
+
+  if (!sheetId || !clientEmail || !privateKey) {
+    return { error: "Google Sheets credentials not configured. Please add GOOGLE_SHEET_ID, GOOGLE_SERVICE_ACCOUNT_EMAIL, and GOOGLE_PRIVATE_KEY to your secrets." };
+  }
+
+  let rows: string[][] = [];
+
+  try {
+    const { google } = await import("googleapis");
+
+    const authClient = new google.auth.JWT({
+      email: clientEmail,
+      key: privateKey.replace(/\\n/g, "\n"),
+      scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+    });
+
+    const sheets = google.sheets({ version: "v4", auth: authClient });
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: "user!A2:E",
+    });
+
+    rows = (response.data.values || []) as string[][];
+  } catch (error: unknown) {
+    console.error("Google Sheets API error (users):", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return { error: `Failed to connect to Google Sheets: ${message}` };
+  }
+
+  if (rows.length === 0) {
+    return { success: true, created: 0, updated: 0, skipped: 0, errors: 0, totalRows: 0 };
+  }
+
+  let created = 0;
+  let updated = 0;
+  let skipped = 0;
+  let errors = 0;
+
+  for (const row of rows) {
+    try {
+      const name = (row[0] || "").trim();
+      const email = (row[1] || "").trim().toLowerCase();
+      const roleStr = (row[2] || "").trim().toUpperCase();
+      const password = (row[3] || "").trim();
+
+      if (!name || !email) {
+        skipped++;
+        continue;
+      }
+
+      let role: "EMPLOYEE" | "ADMIN" | "SUPER_ADMIN" = "EMPLOYEE";
+      if (roleStr === "ADMIN") role = "ADMIN";
+      else if (roleStr === "SUPER_ADMIN") role = "SUPER_ADMIN";
+
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser) {
+        await prisma.user.update({
+          where: { email },
+          data: {
+            name,
+            role,
+            ...(password ? { password: await bcrypt.hash(password, 10) } : {}),
+          },
+        });
+        updated++;
+      } else {
+        if (!password) {
+          skipped++;
+          continue;
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await prisma.user.create({
+          data: {
+            name,
+            email,
+            role,
+            password: hashedPassword,
+          },
+        });
+        created++;
+      }
+    } catch (err: unknown) {
+      console.error("User sync error:", err);
+      errors++;
+    }
+  }
+
+  return {
+    success: true,
+    created,
+    updated,
     skipped,
     errors,
     totalRows: rows.length,
