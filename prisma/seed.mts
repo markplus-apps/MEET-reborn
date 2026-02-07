@@ -45,27 +45,31 @@ async function main() {
   console.log("Users created:", { admin: admin.email, adminUser: adminUser.email, employee: employee.email });
 
   const publicRooms = [
-    { name: "Meet 1", capacity: 6, facilities: ["Projector", "Whiteboard", "WiFi"] },
-    { name: "Meet 2", capacity: 8, facilities: ["Projector", "Whiteboard", "WiFi", "Video Conference"] },
-    { name: "Meet 3", capacity: 4, facilities: ["Whiteboard", "WiFi"] },
-    { name: "Meet 4", capacity: 10, facilities: ["Projector", "Whiteboard", "WiFi", "Video Conference", "Sound System"] },
-    { name: "Meet 5", capacity: 6, facilities: ["Projector", "WiFi"] },
-    { name: "Meet 6", capacity: 8, facilities: ["Projector", "Whiteboard", "WiFi", "Video Conference"] },
-    { name: "Meet 7", capacity: 12, facilities: ["Projector", "Whiteboard", "WiFi", "Video Conference", "Sound System", "Recording"] },
+    { name: "Meet 1", capacity: 30, facilities: ["Projector", "Whiteboard"] },
+    { name: "Meet 2", capacity: 6, facilities: ["Whiteboard"] },
+    { name: "Meet 3", capacity: 6, facilities: ["Monitor", "Whiteboard"] },
+    { name: "Meet 4", capacity: 8, facilities: ["Monitor", "Whiteboard"] },
+    { name: "Meet 5", capacity: 8, facilities: ["Whiteboard"] },
+    { name: "Meet 6", capacity: 8, facilities: ["Whiteboard"] },
+    { name: "Meet 7", capacity: 8, facilities: ["Monitor", "Whiteboard"] },
   ];
 
   const specialRooms = [
-    { name: "Philip Kotler Classroom", capacity: 50, facilities: ["Projector", "Whiteboard", "WiFi", "Video Conference", "Sound System", "Recording", "Stage"] },
-    { name: "MarkPlus Gallery", capacity: 30, facilities: ["Projector", "WiFi", "Sound System", "Display Screens", "Gallery Lighting"] },
-    { name: "Museum of Marketing", capacity: 40, facilities: ["Projector", "WiFi", "Sound System", "Interactive Displays", "Exhibition Space"] },
+    { name: "Philip Kotler Classroom", capacity: 150, facilities: ["Projector", "Large Whiteboard", "Sound System"] },
+    { name: "MarkPlus Gallery", capacity: 100, facilities: ["Projector", "Whiteboard", "Sound System"] },
+    { name: "Museum of Marketing", capacity: 50, facilities: ["Projector", "Large Whiteboard", "Sound System"] },
   ];
 
   for (const room of publicRooms) {
+    const id = `public-${room.name.toLowerCase().replace(/\s+/g, "-")}`;
     await prisma.room.upsert({
-      where: { id: `public-${room.name.toLowerCase().replace(/\s+/g, "-")}` },
-      update: {},
+      where: { id },
+      update: {
+        capacity: room.capacity,
+        facilities: room.facilities,
+      },
       create: {
-        id: `public-${room.name.toLowerCase().replace(/\s+/g, "-")}`,
+        id,
         name: room.name,
         category: "PUBLIC",
         capacity: room.capacity,
@@ -76,11 +80,15 @@ async function main() {
   }
 
   for (const room of specialRooms) {
+    const id = `special-${room.name.toLowerCase().replace(/\s+/g, "-")}`;
     await prisma.room.upsert({
-      where: { id: `special-${room.name.toLowerCase().replace(/\s+/g, "-")}` },
-      update: {},
+      where: { id },
+      update: {
+        capacity: room.capacity,
+        facilities: room.facilities,
+      },
       create: {
-        id: `special-${room.name.toLowerCase().replace(/\s+/g, "-")}`,
+        id,
         name: room.name,
         category: "SPECIAL",
         capacity: room.capacity,
@@ -90,7 +98,7 @@ async function main() {
     });
   }
 
-  console.log("Created 7 PUBLIC rooms and 3 SPECIAL rooms");
+  console.log("Created/Updated 7 PUBLIC rooms and 3 SPECIAL rooms");
   console.log("Seeding completed!");
 }
 

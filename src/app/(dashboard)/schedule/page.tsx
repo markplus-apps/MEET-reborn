@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Calendar, Clock, MapPin, X, CalendarCheck, CheckCircle, Timer, ArrowRight } from "lucide-react";
+import { Calendar, Clock, MapPin, X, CalendarCheck, CheckCircle, Timer, ArrowRight, Pencil } from "lucide-react";
 import { formatWIB } from "@/lib/timezone";
-import { cancelBooking, checkInBooking, endBookingEarly, extendBooking } from "@/actions/booking";
+import { cancelBooking, checkInBooking, endBookingEarly, extendBooking, modifyBooking } from "@/actions/booking";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
 export default function SchedulePage() {
   const queryClient = useQueryClient();
@@ -23,6 +26,15 @@ export default function SchedulePage() {
       return res.json();
     },
     refetchInterval: 60000,
+  });
+
+  const { data: rooms = [] } = useQuery({
+    queryKey: ["rooms"],
+    queryFn: async () => {
+      const res = await fetch("/api/rooms");
+      if (!res.ok) throw new Error("Failed to fetch rooms");
+      return res.json();
+    },
   });
 
   const cancelMutation = useMutation({
@@ -107,6 +119,7 @@ export default function SchedulePage() {
                       key={booking.id}
                       booking={booking}
                       index={i}
+                      rooms={rooms}
                       onCancel={() => cancelMutation.mutate(booking.id)}
                       onCheckIn={() => checkInMutation.mutate(booking.id)}
                       onEndEarly={() => endEarlyMutation.mutate(booking.id)}
@@ -126,7 +139,7 @@ export default function SchedulePage() {
               </h2>
               <div className="space-y-3">
                 {past.slice(0, 10).map((booking: BookingData, i: number) => (
-                  <BookingCard key={booking.id} booking={booking} index={i} isPast />
+                  <BookingCard key={booking.id} booking={booking} index={i} rooms={rooms} isPast />
                 ))}
               </div>
             </div>
@@ -146,12 +159,22 @@ interface BookingData {
   status: string;
   participantCount: number;
   checkInStatus: string;
-  room: { name: string; category: string };
+  roomId: string;
+  room: { id: string; name: string; category: string; capacity: number };
+}
+
+interface RoomData {
+  id: string;
+  name: string;
+  category: string;
+  capacity: number;
+  canBook: boolean;
 }
 
 function BookingCard({
   booking,
   index,
+  rooms,
   onCancel,
   onCheckIn,
   onEndEarly,
@@ -160,6 +183,7 @@ function BookingCard({
 }: {
   booking: BookingData;
   index: number;
+  rooms: RoomData[];
   onCancel?: () => void;
   onCheckIn?: () => void;
   onEndEarly?: () => void;
@@ -167,6 +191,7 @@ function BookingCard({
   isPast?: boolean;
 }) {
   const [extendOpen, setExtendOpen] = useState(false);
+  const [modifyOpen, setModifyOpen] = useState(false);
   const queryClient = useQueryClient();
   const now = new Date();
   const startTime = new Date(booking.startTime);
@@ -261,6 +286,10 @@ function BookingCard({
                       End Early
                     </Button>
                   )}
+                  <Button size="sm" variant="outline" onClick={() => setModifyOpen(true)} className="h-7 text-xs gap-1 text-violet-600 border-violet-200 hover:bg-violet-50 dark:border-violet-800 dark:hover:bg-violet-900/20">
+                    <Pencil className="h-3 w-3" />
+                    Modify
+                  </Button>
                   {!isPast && (
                     <Button size="sm" variant="outline" onClick={() => setExtendOpen(true)} className="h-7 text-xs gap-1 text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-800 dark:hover:bg-blue-900/20">
                       <ArrowRight className="h-3 w-3" />
@@ -292,6 +321,13 @@ function BookingCard({
         onExtend={(newEndTime) => extendMutation.mutate({ id: booking.id, endTime: newEndTime })}
         isPending={extendMutation.isPending}
       />
+
+      <ModifyDialog
+        open={modifyOpen}
+        onClose={() => setModifyOpen(false)}
+        booking={booking}
+        rooms={rooms}
+      />
     </>
   );
 }
@@ -316,7 +352,7 @@ function ExtendDialog({ open, onClose, booking, onExtend, isPending }: {
       <div className="space-y-4">
         <div>
           <DialogTitle>Extend Meeting</DialogTitle>
-          <DialogDescription>Extend "{booking.title}" at {booking.room.name}</DialogDescription>
+          <DialogDescription>Extend &quot;{booking.title}&quot; at {booking.room.name}</DialogDescription>
         </div>
 
         <div className="space-y-3 rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50">
@@ -353,6 +389,184 @@ function ExtendDialog({ open, onClose, booking, onExtend, isPending }: {
           </Button>
         </div>
       </div>
+    </Dialog>
+  );
+}
+
+function ModifyDialog({ open, onClose, booking, rooms }: {
+  open: boolean;
+  onClose: () => void;
+  booking: BookingData;
+  rooms: RoomData[];
+}) {
+  const queryClient = useQueryClient();
+  const [title, setTitle] = useState(booking.title);
+  const [description, setDescription] = useState(booking.description || "");
+  const [selectedRoomId, setSelectedRoomId] = useState(booking.roomId || booking.room.id);
+  const [participantCount, setParticipantCount] = useState(booking.participantCount);
+  const [dateStr, setDateStr] = useState("");
+  const [startTimeStr, setStartTimeStr] = useState("");
+  const [endTimeStr, setEndTimeStr] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setTitle(booking.title);
+      setDescription(booking.description || "");
+      setSelectedRoomId(booking.roomId || booking.room.id);
+      setParticipantCount(booking.participantCount);
+      const wibStart = toZonedTime(new Date(booking.startTime), "Asia/Jakarta");
+      const wibEnd = toZonedTime(new Date(booking.endTime), "Asia/Jakarta");
+      setDateStr(format(wibStart, "yyyy-MM-dd"));
+      setStartTimeStr(format(wibStart, "HH:mm"));
+      setEndTimeStr(format(wibEnd, "HH:mm"));
+    }
+  }, [open, booking]);
+
+  const modifyMutation = useMutation({
+    mutationFn: (data: { bookingId: string; payload: Parameters<typeof modifyBooking>[1] }) =>
+      modifyBooking(data.bookingId, data.payload),
+    onSuccess: (result) => {
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Booking modified successfully!");
+        queryClient.invalidateQueries({ queryKey: ["myBookings"] });
+        queryClient.invalidateQueries({ queryKey: ["stats"] });
+        onClose();
+      }
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !dateStr || !startTimeStr || !endTimeStr) return;
+
+    const [sh, sm] = startTimeStr.split(":").map(Number);
+    const [eh, em] = endTimeStr.split(":").map(Number);
+
+    const startDate = new Date(`${dateStr}T00:00:00`);
+    startDate.setHours(sh, sm, 0, 0);
+    const startUtc = fromZonedTime(startDate, "Asia/Jakarta");
+
+    const endDate = new Date(`${dateStr}T00:00:00`);
+    endDate.setHours(eh, em, 0, 0);
+    const endUtc = fromZonedTime(endDate, "Asia/Jakarta");
+
+    modifyMutation.mutate({
+      bookingId: booking.id,
+      payload: {
+        title,
+        description,
+        roomId: selectedRoomId,
+        startTime: startUtc.toISOString(),
+        endTime: endUtc.toISOString(),
+        participantCount,
+      },
+    });
+  };
+
+  const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
+
+  return (
+    <Dialog open={open} onClose={onClose} preventBackdropClose>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <DialogTitle>Modify Booking</DialogTitle>
+          <DialogDescription>Reschedule or change details for this booking</DialogDescription>
+        </div>
+
+        <div className="space-y-3">
+          <Input
+            label="Meeting Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Room</label>
+            <select
+              value={selectedRoomId}
+              onChange={(e) => setSelectedRoomId(e.target.value)}
+              className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white/80 px-4 py-2 text-sm backdrop-blur-sm transition-all duration-200 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+            >
+              {rooms.filter((r) => r.canBook).map((room) => (
+                <option key={room.id} value={room.id}>
+                  {room.name} ({room.capacity} people) {room.category === "SPECIAL" ? "★" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Date</label>
+            <input
+              type="date"
+              value={dateStr}
+              onChange={(e) => setDateStr(e.target.value)}
+              className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white/80 px-4 py-2 text-sm backdrop-blur-sm transition-all duration-200 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Start (WIB)</label>
+              <input
+                type="time"
+                value={startTimeStr}
+                onChange={(e) => setStartTimeStr(e.target.value)}
+                min="07:00"
+                max="21:00"
+                step="300"
+                className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white/80 px-3 py-2 text-sm backdrop-blur-sm transition-all duration-200 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">End (WIB)</label>
+              <input
+                type="time"
+                value={endTimeStr}
+                onChange={(e) => setEndTimeStr(e.target.value)}
+                min="07:00"
+                max="21:00"
+                step="300"
+                className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white/80 px-3 py-2 text-sm backdrop-blur-sm transition-all duration-200 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Participants</label>
+            <input
+              type="number"
+              min={1}
+              max={selectedRoom?.capacity || 50}
+              value={participantCount}
+              onChange={(e) => setParticipantCount(Math.max(1, parseInt(e.target.value) || 1))}
+              className="flex h-11 w-24 rounded-xl border border-zinc-200 bg-white/80 px-3 py-2 text-sm text-center backdrop-blur-sm transition-all duration-200 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Description (Optional)</label>
+            <textarea
+              className="flex min-h-[60px] w-full rounded-xl border border-zinc-200 bg-white/80 px-4 py-3 text-sm backdrop-blur-sm transition-all duration-200 placeholder:text-zinc-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+              placeholder="Meeting agenda or notes..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3 pt-2">
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            Cancel
+          </Button>
+          <Button type="submit" disabled={modifyMutation.isPending || !title} className="flex-1">
+            {modifyMutation.isPending ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      </form>
     </Dialog>
   );
 }

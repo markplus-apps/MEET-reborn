@@ -1,0 +1,42 @@
+selalu gunakan Bahasa Indonesia keika berkomunikasi dgn aya di chat ini 
+
+We are entering the **Refined POLISH PHASE**.
+I have updated the `DATABASE_URL` in Secrets. Please ensure the app connects to the VPS Postgres, not the local SQLite.
+
+I have 3 specific tasks to elevate the UX to "World Class" standards:
+
+### TASK 1: MOBILE UX UPGRADE (The "Bottom Sheet")
+The current Booking Modal looks cramped on mobile.
+- **Requirement:** Implementation **Responsive Dialog**.
+  - **Desktop:** Keep the current centered Dialog/Modal.
+  - **Mobile:** Automatically switch to a **Bottom Sheet / Drawer** component (use `vaul` or Shadcn's `Drawer`).
+- **Why:** This is the industry standard for mobile apps. It should slide up from the bottom and handle touch gestures (swipe down to close).
+
+### TASK 2: "MODIFY" BOOKING FEATURE
+Currently, I only see "Extend" and "Cancel". I need a **"Reschedule / Modify"** button.
+- **Logic:**
+  1. User clicks "Modify".
+  2. Open the Booking Form pre-filled with existing data.
+  3. Allow changing Date, Time, or even Room.
+  4. On Submit: Run the **Overlap Check**. If valid, update the booking. If invalid, show error.
+
+### TASK 3: UPDATE ROOM DATA (Hard Refactor)
+Please update the `seed.ts` (database seeding script) and the Room Card UI to reflect EXACTLY these real-world specs:
+
+1. **Meet 1:** Capacity: 30, Facilities: ["Projector", "Whiteboard"]
+2. **Meet 2:** Capacity: 6, Facilities: ["Whiteboard]
+3. **Meet 3:** Capacity: 6, Facilities: ["Monitor", "Whiteboard"]
+4. **Meet 4:** Capacity: 8, Facilities: ["Monitor", "Whiteboard"]
+5. **Meet 5:** Capacity: 8, Facilities: ["Whiteboard"]
+6. **Meet 6:** Capacity: 8, Facilities: ["Whiteboard"]
+7. **Meet 7:** Capacity: 8, Facilities: ["Monitor", "Whiteboard"]
+8. **Philip Kotler Classroom:** Capacity: 150, Facilities: ["Projector", "Large Whiteboard", "Sound System"]
+9. **MarkPlus Gallery:** Capacity: 100, Facilities: ["Projector", "Whiteboard", "Sound System"]
+10. **Museum of Marketing:** Capacity: 50, Facilities: ["Projector", "Large Whiteboard", "Sound System"]
+
+**EXECUTION ORDER:**
+1. Update the Seed Script & Room Config first.
+2. Implement the "Modify" logic.
+3. Refactor the Booking Modal to use `Drawer` on mobile (Check `useMediaQuery` hook).
+
+**NOTE:** Ensure `DATABASE_URL` is used. Retest the Legacy Sync after these changes.

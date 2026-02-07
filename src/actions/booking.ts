@@ -231,6 +231,106 @@ export async function endBookingEarly(bookingId: string) {
   return { success: true };
 }
 
+export async function modifyBooking(bookingId: string, data: {
+  roomId?: string;
+  title?: string;
+  description?: string;
+  startTime?: string;
+  endTime?: string;
+  participantCount?: number;
+}) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Unauthorized" };
+  }
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: { room: true },
+  });
+
+  if (!booking) {
+    return { error: "Booking not found" };
+  }
+
+  const userRole = (session.user as { role: string }).role;
+
+  if (booking.userId !== session.user.id && userRole === "EMPLOYEE") {
+    return { error: "You can only modify your own bookings" };
+  }
+
+  if (booking.status === "CANCELLED") {
+    return { error: "Cannot modify a cancelled booking" };
+  }
+
+  const targetRoomId = data.roomId || booking.roomId;
+  const targetRoom = targetRoomId !== booking.roomId
+    ? await prisma.room.findUnique({ where: { id: targetRoomId } })
+    : booking.room;
+
+  if (!targetRoom || !targetRoom.isActive) {
+    return { error: "Target room not found or inactive" };
+  }
+
+  if (targetRoom.category === "SPECIAL" && userRole === "EMPLOYEE") {
+    return { error: "You don't have permission to book special rooms" };
+  }
+
+  const startTime = data.startTime ? new Date(data.startTime) : booking.startTime;
+  const endTime = data.endTime ? new Date(data.endTime) : booking.endTime;
+
+  if (startTime >= endTime) {
+    return { error: "End time must be after start time" };
+  }
+
+  const participantCount = data.participantCount || booking.participantCount;
+  if (participantCount > targetRoom.capacity) {
+    return { error: `Participant count (${participantCount}) exceeds room capacity (${targetRoom.capacity})` };
+  }
+
+  const conflicting = await prisma.booking.findFirst({
+    where: {
+      id: { not: bookingId },
+      roomId: targetRoomId,
+      status: { not: "CANCELLED" },
+      AND: [
+        { startTime: { lt: endTime } },
+        { endTime: { gt: startTime } },
+      ],
+    },
+  });
+
+  if (conflicting) {
+    return { error: "This time slot conflicts with an existing booking. Please choose another time." };
+  }
+
+  const updated = await prisma.booking.update({
+    where: { id: bookingId },
+    data: {
+      title: data.title || booking.title,
+      description: data.description !== undefined ? data.description : booking.description,
+      startTime,
+      endTime,
+      roomId: targetRoomId,
+      participantCount,
+    },
+    include: { room: true, user: true },
+  });
+
+  sendBookingEmail({
+    userName: updated.user.name,
+    userEmail: updated.user.email,
+    roomName: updated.room.name,
+    title: updated.title,
+    startTime: updated.startTime,
+    endTime: updated.endTime,
+    status: "MODIFIED",
+  }).catch(console.error);
+
+  revalidateAll();
+  return { success: true, booking: updated };
+}
+
 export async function checkInBooking(bookingId: string) {
   const session = await auth();
   if (!session?.user?.id) {
