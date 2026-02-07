@@ -75,6 +75,14 @@ function getFacilityIcon(facility: string) {
   return null;
 }
 
+function getShortRoomName(name: string): string {
+  if (/^Meet\s*(\d+)$/i.test(name)) return name.replace(/^Meet\s*/i, "M");
+  if (name.toLowerCase().includes("markplus gallery")) return "MP Gallery";
+  if (name.toLowerCase().includes("philip kotler")) return "PK Classroom";
+  if (name.toLowerCase().includes("museum of marketing")) return "Museum";
+  return name;
+}
+
 function isCurrentlyActive(startTime: string, endTime: string): boolean {
   const now = new Date();
   return new Date(startTime) <= now && new Date(endTime) > now;
@@ -375,18 +383,38 @@ function ScheduleTab({ mounted }: { mounted: boolean }) {
     refetchInterval: 30000,
   });
 
+  const visibleRooms = useMemo(() => {
+    if (isAdmin) return rooms;
+    return rooms.filter((r) => r.category !== "SPECIAL");
+  }, [rooms, isAdmin]);
+
+  const publicRoomsSchedule = useMemo(() => {
+    const meetOrder = ["Meet 1", "Meet 2", "Meet 3", "Meet 4", "Meet 5", "Meet 6", "Meet 7"];
+    return visibleRooms
+      .filter((r) => r.category === "PUBLIC")
+      .sort((a, b) => {
+        const aIdx = meetOrder.indexOf(a.name);
+        const bIdx = meetOrder.indexOf(b.name);
+        return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
+      });
+  }, [visibleRooms]);
+
+  const specialRoomsSchedule = useMemo(() => {
+    return visibleRooms.filter((r) => r.category === "SPECIAL");
+  }, [visibleRooms]);
+
   useEffect(() => {
-    if (rooms.length > 0 && selectedRooms.size === 0) {
-      setSelectedRooms(new Set(rooms.map((r) => r.id)));
+    if (visibleRooms.length > 0 && selectedRooms.size === 0) {
+      setSelectedRooms(new Set(visibleRooms.map((r) => r.id)));
     }
-  }, [rooms, selectedRooms.size]);
+  }, [visibleRooms, selectedRooms.size]);
 
   const roomsWithBookings = useMemo(() => {
     const sortOrder = [
-      "Philip Kotler Classroom", "MarkPlus Gallery", "Museum of Marketing",
       "Meet 1", "Meet 2", "Meet 3", "Meet 4", "Meet 5", "Meet 6", "Meet 7",
+      "Philip Kotler Classroom", "MarkPlus Gallery", "Museum of Marketing",
     ];
-    return rooms
+    return visibleRooms
       .filter((room) => selectedRooms.has(room.id))
       .sort((a, b) => {
         const aIdx = sortOrder.findIndex((n) => a.name.toLowerCase().includes(n.toLowerCase()));
@@ -399,7 +427,7 @@ function ScheduleTab({ mounted }: { mounted: boolean }) {
           .filter((b) => b.room.id === room.id)
           .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()),
       }));
-  }, [rooms, bookings, selectedRooms]);
+  }, [visibleRooms, bookings, selectedRooms]);
 
   const activeCount = useMemo(() => {
     if (!mounted) return 0;
@@ -415,7 +443,7 @@ function ScheduleTab({ mounted }: { mounted: boolean }) {
     });
   };
 
-  const selectAll = () => setSelectedRooms(new Set(rooms.map((r) => r.id)));
+  const selectAll = () => setSelectedRooms(new Set(visibleRooms.map((r) => r.id)));
   const clearAll = () => setSelectedRooms(new Set());
   const todayActive = isToday(selectedDate);
 
@@ -502,38 +530,77 @@ function ScheduleTab({ mounted }: { mounted: boolean }) {
       </div>
 
       <Card glass className="p-3 sm:p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="mr-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400">Rooms:</span>
-          <button onClick={selectAll} className="rounded-md bg-violet-50 px-2 py-0.5 text-[11px] font-semibold text-violet-600 transition-colors hover:bg-violet-100 dark:bg-violet-900/20 dark:text-violet-400">
-            All ({rooms.length})
-          </button>
-          <button onClick={clearAll} className="rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-semibold text-zinc-500 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400">
-            Clear
-          </button>
-          <div className="mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
-          {rooms.map((room) => (
-            <button
-              key={room.id}
-              onClick={() => toggleRoom(room.id)}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-all duration-200",
-                selectedRooms.has(room.id)
-                  ? "bg-violet-100 text-violet-700 ring-1 ring-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:ring-violet-700"
-                  : "bg-zinc-50 text-zinc-400 hover:bg-zinc-100 dark:bg-zinc-800/50 dark:text-zinc-500 dark:hover:bg-zinc-800"
-              )}
-            >
-              <div className={cn(
-                "flex h-3.5 w-3.5 items-center justify-center rounded-sm",
-                selectedRooms.has(room.id)
-                  ? "bg-violet-500 text-white"
-                  : "border border-zinc-300 dark:border-zinc-600"
-              )}>
-                {selectedRooms.has(room.id) && <Check className="h-2.5 w-2.5" />}
-              </div>
-              {room.name}
-              <span className="text-[10px] opacity-60">({room.capacity})</span>
+        <div className="space-y-2.5">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Filter:</span>
+            <button onClick={selectAll} className="rounded-md bg-violet-50 px-2 py-0.5 text-[11px] font-semibold text-violet-600 transition-colors hover:bg-violet-100 dark:bg-violet-900/20 dark:text-violet-400">
+              All ({visibleRooms.length})
             </button>
-          ))}
+            <button onClick={clearAll} className="rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-semibold text-zinc-500 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400">
+              Clear
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {publicRoomsSchedule.map((room) => (
+              <button
+                key={room.id}
+                onClick={() => toggleRoom(room.id)}
+                className={cn(
+                  "flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium transition-all duration-200",
+                  selectedRooms.has(room.id)
+                    ? "bg-violet-100 text-violet-700 ring-1 ring-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:ring-violet-700"
+                    : "bg-zinc-50 text-zinc-400 hover:bg-zinc-100 dark:bg-zinc-800/50 dark:text-zinc-500 dark:hover:bg-zinc-800"
+                )}
+              >
+                <div className={cn(
+                  "flex h-3 w-3 items-center justify-center rounded-sm",
+                  selectedRooms.has(room.id)
+                    ? "bg-violet-500 text-white"
+                    : "border border-zinc-300 dark:border-zinc-600"
+                )}>
+                  {selectedRooms.has(room.id) && <Check className="h-2 w-2" />}
+                </div>
+                {getShortRoomName(room.name)}
+              </button>
+            ))}
+          </div>
+
+          {specialRoomsSchedule.length > 0 && (
+            <>
+              <div className="flex items-center gap-2">
+                <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-700" />
+                <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                  <Lock className="h-3 w-3" /> Special
+                </span>
+                <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-700" />
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {specialRoomsSchedule.map((room) => (
+                  <button
+                    key={room.id}
+                    onClick={() => toggleRoom(room.id)}
+                    className={cn(
+                      "flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium transition-all duration-200",
+                      selectedRooms.has(room.id)
+                        ? "bg-amber-100 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-700"
+                        : "bg-zinc-50 text-zinc-400 hover:bg-zinc-100 dark:bg-zinc-800/50 dark:text-zinc-500 dark:hover:bg-zinc-800"
+                    )}
+                  >
+                    <div className={cn(
+                      "flex h-3 w-3 items-center justify-center rounded-sm",
+                      selectedRooms.has(room.id)
+                        ? "bg-amber-500 text-white"
+                        : "border border-zinc-300 dark:border-zinc-600"
+                    )}>
+                      {selectedRooms.has(room.id) && <Check className="h-2 w-2" />}
+                    </div>
+                    {getShortRoomName(room.name)}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </Card>
 
@@ -636,7 +703,7 @@ function ScheduleRoomCard({
           <div>
             <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{room.name}</h3>
             <div className="flex items-center gap-2 text-[11px] text-zinc-400">
-              <span className="flex items-center gap-1"><Users className="h-3 w-3" />{room.capacity} orang</span>
+              <span className="flex items-center gap-1"><Users className="h-3 w-3" />{room.capacity}</span>
               {room.facilities.slice(0, 3).map((f) => {
                 const Icon = getFacilityIcon(f);
                 return Icon ? <span key={f} className="flex items-center gap-0.5" title={f}><Icon className="h-3 w-3" /></span> : null;
