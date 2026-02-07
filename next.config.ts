@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["*"],
+  allowedDevOrigins: [
+    "*.replit.dev",
+    "*.janeway.replit.dev",
+    "*.replit.app",
+  ],
   serverExternalPackages: ["@prisma/client", "bcryptjs"],
 };
 

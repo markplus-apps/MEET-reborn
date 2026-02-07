@@ -97,7 +97,7 @@ export function BookingModal({ open, onClose, room, startTime, endTime, onStartT
   if (!room || !startTime || !endTime) return null;
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} preventBackdropClose>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <DialogTitle>Book Meeting Room</DialogTitle>

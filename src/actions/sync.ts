@@ -22,6 +22,8 @@ export async function syncFromGoogleSheet() {
     return { error: "Google Sheets credentials not configured. Please add GOOGLE_SHEET_ID, GOOGLE_SERVICE_ACCOUNT_EMAIL, and GOOGLE_PRIVATE_KEY to your secrets." };
   }
 
+  let rows: string[][] = [];
+
   try {
     const { google } = await import("googleapis");
 
@@ -35,82 +37,132 @@ export async function syncFromGoogleSheet() {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: "Sheet1!A2:H",
+      range: "Sheet1!A2:O",
     });
 
-    const rows = response.data.values || [];
-    let synced = 0;
-    let skipped = 0;
-    let errors = 0;
-
-    for (const row of rows) {
-      const [title, roomName, startTime, endTime, userName, userEmail, description, participantCount] = row;
-
-      if (!title || !roomName || !startTime || !endTime) {
-        skipped++;
-        continue;
-      }
-
-      try {
-        const room = await prisma.room.findFirst({
-          where: { name: { contains: roomName, mode: "insensitive" } },
-        });
-
-        if (!room) {
-          skipped++;
-          continue;
-        }
-
-        let user = await prisma.user.findFirst({
-          where: { email: userEmail?.toLowerCase() || "" },
-        });
-
-        if (!user) {
-          skipped++;
-          continue;
-        }
-
-        const rowId = `sheet_${title}_${startTime}_${roomName}`.replace(/[^a-zA-Z0-9_-]/g, "_");
-
-        const existing = await prisma.booking.findFirst({
-          where: { googleSheetRowId: rowId },
-        });
-
-        if (existing) {
-          skipped++;
-          continue;
-        }
-
-        await prisma.booking.create({
-          data: {
-            title,
-            description: description || undefined,
-            startTime: new Date(startTime),
-            endTime: new Date(endTime),
-            roomId: room.id,
-            userId: user.id,
-            status: "CONFIRMED",
-            participantCount: parseInt(participantCount) || 1,
-            googleSheetRowId: rowId,
-          },
-        });
-
-        synced++;
-      } catch (err) {
-        errors++;
-        console.error("Row sync error:", err);
-      }
-    }
-
-    return {
-      success: true,
-      synced,
-      skipped,
-      errors,
-      totalRows: rows.length,
-    };
-  } catch (error) {
-    console.error("Google Sheets sync error:", error);
-    return { error: "Failed to connect to Google Sheets. Please check your credentials." };
+    rows = (response.data.values || []) as string[][];
+  } catch (error: unknown) {
+    console.error("Google Sheets API error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return { error: `Failed to connect to Google Sheets: ${message}` };
   }
+
+  if (rows.length === 0) {
+    return { success: true, synced: 0, skipped: 0, errors: 0, totalRows: 0 };
+  }
+
+  const allRooms = await prisma.room.findMany();
+
+  function findRoom(name: string) {
+    if (!name) return null;
+    const normalized = name.trim().toLowerCase();
+    return allRooms.find((r) => {
+      const rName = r.name.toLowerCase();
+      return rName === normalized || rName.includes(normalized) || normalized.includes(rName);
+    }) || null;
+  }
+
+  let synced = 0;
+  let skipped = 0;
+  let errors = 0;
+  const CHUNK_SIZE = 50;
+
+  for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
+    const chunk = rows.slice(i, i + CHUNK_SIZE);
+
+    try {
+      await prisma.$transaction(async (tx) => {
+        for (const row of chunk) {
+          const rowId = row[0];
+          const roomName = row[1];
+          const userEmail = row[3];
+          const startTimeUtc = row[5];
+          const endTimeUtc = row[6];
+          const participantsStr = row[7];
+          const statusStr = row[8];
+
+          if (!roomName || !startTimeUtc || !endTimeUtc) {
+            skipped++;
+            continue;
+          }
+
+          const room = findRoom(roomName);
+          if (!room) {
+            skipped++;
+            continue;
+          }
+
+          const email = (userEmail || "").trim().toLowerCase();
+          if (!email) {
+            skipped++;
+            continue;
+          }
+
+          let user = await tx.user.findFirst({
+            where: { email },
+          });
+
+          if (!user) {
+            skipped++;
+            continue;
+          }
+
+          const sheetRowId = rowId ? `sheet_${rowId}` : `sheet_${roomName}_${startTimeUtc}`.replace(/[^a-zA-Z0-9_-]/g, "_");
+
+          const existing = await tx.booking.findFirst({
+            where: { googleSheetRowId: sheetRowId },
+          });
+
+          if (existing) {
+            skipped++;
+            continue;
+          }
+
+          const parsedStart = new Date(startTimeUtc);
+          const parsedEnd = new Date(endTimeUtc);
+
+          if (isNaN(parsedStart.getTime()) || isNaN(parsedEnd.getTime())) {
+            errors++;
+            continue;
+          }
+
+          let status: "CONFIRMED" | "CANCELLED" = "CONFIRMED";
+          if (statusStr) {
+            const s = statusStr.trim().toLowerCase();
+            if (s === "cancelled" || s === "canceled") {
+              status = "CANCELLED";
+            }
+          }
+
+          const participants = parseInt(participantsStr) || 1;
+
+          await tx.booking.create({
+            data: {
+              title: `Meeting - ${room.name}`,
+              startTime: parsedStart,
+              endTime: parsedEnd,
+              roomId: room.id,
+              userId: user.id,
+              status,
+              participantCount: Math.min(participants, room.capacity),
+              googleSheetRowId: sheetRowId,
+            },
+          });
+
+          synced++;
+        }
+      }, { timeout: 30000 });
+    } catch (err: unknown) {
+      console.error(`Chunk sync error (rows ${i}-${i + chunk.length}):`, err);
+      errors += chunk.length;
+    }
+  }
+
+  return {
+    success: true,
+    synced,
+    skipped,
+    errors,
+    totalRows: rows.length,
+  };
 }

@@ -20,6 +20,7 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error("Failed to fetch stats");
       return res.json();
     },
+    refetchInterval: 60000,
   });
 
   const { data: rooms } = useQuery({
@@ -38,6 +39,7 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error("Failed to fetch bookings");
       return res.json();
     },
+    refetchInterval: 60000,
   });
 
   const upcomingBookings = (myBookings || [])

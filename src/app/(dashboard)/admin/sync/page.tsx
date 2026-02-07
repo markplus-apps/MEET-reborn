@@ -80,7 +80,7 @@ export default function AdminSyncPage() {
                 <strong>Required secrets:</strong> GOOGLE_SHEET_ID, GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY
               </p>
               <p className="mt-1 text-xs text-amber-600 dark:text-amber-500">
-                <strong>Sheet format:</strong> Title | Room Name | Start Time | End Time | User Name | User Email | Description | Participant Count
+                <strong>Sheet columns:</strong> A: ID | B: Room Name | D: User Email | F: Start (UTC) | G: End (UTC) | H: Participants | I: Status
               </p>
             </div>
           </div>

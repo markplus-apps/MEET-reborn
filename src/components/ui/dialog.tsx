@@ -9,9 +9,10 @@ interface DialogProps {
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
+  preventBackdropClose?: boolean;
 }
 
-export function Dialog({ open, onClose, children, className }: DialogProps) {
+export function Dialog({ open, onClose, children, className, preventBackdropClose = false }: DialogProps) {
   return (
     <AnimatePresence>
       {open && (
@@ -21,7 +22,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
-            onClick={onClose}
+            onClick={preventBackdropClose ? undefined : onClose}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -30,6 +31,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className={cn(
               "fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-2xl dark:border-zinc-700/60 dark:bg-zinc-900",
+              "max-h-[85vh] overflow-y-auto",
               className
             )}
           >

@@ -1,0 +1,30 @@
+Reviewing the current implementation, there are 3 CRITICAL BUGS that need immediate fixing. Do not start new features, fix these first:
+
+### 1. FIX BOOKING MODAL UX (Urgent)
+The Booking Modal is currently unusable due to UX flaws:
+- **Issue A (Auto-Close):** The modal still closes automatically when the background data refreshes.
+  - **Fix:** Ensure `useQuery` for bookings has `refetchInterval` set to `0` (or false) explicitly when `isModalOpen === true`. Check the state logic again.
+- **Issue B (Accidental Close):** Clicking outside the modal (on the backdrop) closes it, destroying user input.
+  - **Fix:** In the `DialogContent` component (or the Dialog usage), add `onInteractOutside={(e) => e.preventDefault()}`. The modal must ONLY close via the "Cancel" button or "X" icon.
+- **Issue C (Viewport Overflow):** The modal is too tall on mobile.
+  - **Fix:** Set a max-height (e.g., `max-h-[85vh]`) on the content and enable `overflow-y-auto` so users can scroll within the modal without it being cut off.
+
+### 2. FIX LEGACY SYNC (WebSocket/Timeout Error)
+The "Pull from Legacy Sheets" button causes a WebSocket crash/disconnect (`wss://... failed`). This happens because the operation takes too long or isn't handling the Google Sheets response correctly.
+
+**Refactor the `syncLegacyData` Server Action:**
+1.  **Column Mapping:** Map the Google Sheet columns EXACTLY as follows (based on User's sheet):
+    - **Col A (ID):** Use this to check for duplicates (`googleSheetRowId`).
+    - **Col B (Room Name):** Map to `roomId` (ensure fuzzy matching, e.g., "Meet 1" -> Database ID for Meet 1).
+    - **Col D (User Email):** Use to find or create the User.
+    - **Col F (Start Time):** This is **UTC ISO String** (e.g., `2026-02-09T03:00:00.000Z`). Parse this directly. **DO NOT** use Col N (WIB text).
+    - **Col G (End Time):** UTC ISO String.
+    - **Col H (Participants):** Map to `participantCount`.
+    - **Col I (Status):** Map to status (confirmed -> CONFIRMED, cancelled -> CANCELLED).
+2.  **Batch Processing:** Do NOT try to insert all rows in one generic `await`. Use `prisma.$transaction` or process in chunks of 50 to prevent timeouts.
+3.  **Error Handling:** Wrap the Google API call in a try/catch block that returns a clean JSON error message instead of crashing the app.
+
+### 3. DARK MODE & UI POLISH
+- Ensure the "Book Room" dialog allows typing "Title" without losing focus during a background poll.
+
+**EXECUTE THESE FIXES NOW.**
