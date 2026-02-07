@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, CalendarPlus, Calendar, CalendarClock, User, ChevronLeft, ChevronRight, LogOut, BarChart3, FileSpreadsheet } from "lucide-react";
+import { Home, Building2, Calendar, User, ChevronLeft, ChevronRight, LogOut, BarChart3, FileSpreadsheet } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -11,15 +11,14 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Home" },
-  { href: "/book", icon: CalendarPlus, label: "Book Room" },
-  { href: "/schedules", icon: CalendarClock, label: "Room Schedules" },
-  { href: "/schedule", icon: Calendar, label: "My Schedule" },
+  { href: "/rooms", icon: Building2, label: "Rooms" },
+  { href: "/my-bookings", icon: Calendar, label: "My Bookings" },
   { href: "/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/profile", icon: User, label: "Profile" },
 ];
 
 const adminItems = [
-  { href: "/admin/sync", icon: FileSpreadsheet, label: "Legacy Sync" },
+  { href: "/admin/sync", icon: FileSpreadsheet, label: "Google Sheets Sync" },
 ];
 
 export function Sidebar() {
@@ -59,9 +58,10 @@ export function Sidebar() {
             </motion.div>
           )}
         </AnimatePresence>
+
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
@@ -75,10 +75,10 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "text-violet-600 dark:text-violet-400"
-                  : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                  ? "text-violet-700 dark:text-violet-300"
+                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
               )}
             >
               {isActive && (
@@ -88,14 +88,14 @@ export function Sidebar() {
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}
-              <item.icon className="relative z-10 h-5 w-5 flex-shrink-0" />
+              <item.icon className={cn("relative z-10 h-5 w-5 flex-shrink-0", isActive && "text-violet-600 dark:text-violet-400")} />
               <AnimatePresence mode="wait">
                 {!collapsed && (
                   <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: "auto" }}
-                    exit={{ opacity: 0, width: 0 }}
-                    className="relative z-10 whitespace-nowrap"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="relative z-10"
                   >
                     {item.label}
                   </motion.span>
@@ -106,21 +106,20 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="border-t border-zinc-200/60 p-3 dark:border-zinc-700/60">
+      <div className="border-t border-zinc-200/60 px-3 py-4 dark:border-zinc-700/60">
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => signOut()}
           className={cn(
-            "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-500 transition-all duration-200 hover:bg-red-50 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+            "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-500 transition-all duration-200 hover:bg-red-50 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-red-900/20 dark:hover:text-red-400",
           )}
         >
           <LogOut className="h-5 w-5 flex-shrink-0" />
           <AnimatePresence mode="wait">
             {!collapsed && (
               <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="whitespace-nowrap"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
               >
                 Sign Out
               </motion.span>

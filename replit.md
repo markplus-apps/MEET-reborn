@@ -20,12 +20,15 @@ src/
 ├── app/
 │   ├── (dashboard)/          # Protected routes with AppShell layout
 │   │   ├── dashboard/        # Main dashboard with stats bento grid
-│   │   ├── book/             # Room listing + [roomId] timeline booking
-│   │   ├── schedules/        # Room Schedules - all rooms/bookings daily view
-│   │   ├── schedule/         # User's bookings with modify/extend/cancel
+│   │   ├── rooms/            # Unified room listing + daily schedule (tabs)
+│   │   │   └── [roomId]/     # Timeline booking for specific room
+│   │   ├── my-bookings/      # User's bookings with modify/extend/cancel
 │   │   ├── analytics/        # Room usage analytics (recharts)
 │   │   ├── admin/sync/       # Legacy Google Sheets sync (admin only)
-│   │   └── profile/          # User profile + settings
+│   │   ├── profile/          # User profile + settings
+│   │   ├── book/             # (redirect → /rooms)
+│   │   ├── schedules/        # (redirect → /rooms?tab=schedule)
+│   │   └── schedule/         # (redirect → /my-bookings)
 │   ├── api/
 │   │   ├── auth/[...nextauth]/ # NextAuth handlers
 │   │   ├── rooms/            # GET rooms with access control
@@ -49,21 +52,32 @@ prisma/
 └── seed.mts                  # Seed 3 users + 10 rooms
 ```
 
+## Navigation Structure
+### Desktop (Sidebar)
+Home | Rooms | My Bookings | Analytics | Profile + admin: Google Sheets Sync
+
+### Mobile (Bottom Nav 4+1)
+Home | Rooms | Bookings | Profile | More (Analytics, Sync, Sign Out)
+
 ## Key Features
 - **10 Rooms** (real-world specs):
   - Meet 1 (30p, Projector+Whiteboard), Meet 2 (6p), Meet 3-7 (6-8p)
   - Philip Kotler Classroom (150p), MarkPlus Gallery (100p), Museum of Marketing (50p)
 - **3 Roles**: EMPLOYEE (public rooms only), ADMIN (all rooms), SUPER_ADMIN (all rooms + management)
+- **Unified Rooms Page**: Tab switcher (Rooms grid + Schedule daily view)
+  - Rooms tab: Search/filter, real-time availability badges, room cards with occupancy status
+  - Schedule tab: Daily view with date nav, room filters, clickable booking rows
+  - Booking Action Sheet: Tap booking → bottom sheet (mobile) / dialog (desktop) with Modify/Extend/Cancel/Check-in/End Early (role-based)
 - **Visual Timeline**: Flexible time picker, 7 AM - 9 PM WIB, color-coded
 - **Booking Actions**: Create, Modify/Reschedule, Extend, End Early, Cancel, Check-in
 - **Conflict Prevention**: Server-side overlap detection
-- **Real-time**: Per-query 60-second polling (disabled when modals open)
+- **Real-time**: Per-query 30-60 second polling (disabled when modals open)
 - **Responsive Modal**: Desktop = centered Dialog, Mobile = Bottom Sheet (vaul Drawer)
 - **Dark Mode**: Class-based toggle with localStorage persistence
 - **Analytics**: Room usage, daily/hourly trends (recharts)
 - **Google Sheets Sync**: Two-way sync — Users (sheet "user") + Bookings (sheet "meets"), pull from sheet + push to sheet
 - **Glassmorphic UI**: backdrop-blur, gradients, animations
-- **Mobile-first**: Bottom nav (mobile), collapsible sidebar (desktop)
+- **Mobile-first**: Bottom nav 4+1 (mobile), collapsible sidebar (desktop)
 
 ## Room Data (Updated)
 1. Meet 1: 30 people, [Projector, Whiteboard]
@@ -89,6 +103,9 @@ prisma/
 - Custom UI components (no shadcn/ui package dependency)
 - Per-query refetchInterval instead of global (prevents modal focus loss)
 - vaul Drawer for mobile booking modal (industry standard bottom sheet UX)
+- Unified /rooms page replaces separate /book and /schedules (fewer pages, better UX)
+- Bottom nav 4+1 pattern: 4 main items + More drawer for additional options
+- Old routes (/book, /schedule, /schedules) redirect to new routes for backward compatibility
 
 ## User Preferences
 - Communicate in Bahasa Indonesia in chat

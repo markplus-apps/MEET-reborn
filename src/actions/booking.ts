@@ -10,6 +10,8 @@ function revalidateAll() {
   revalidatePath("/schedule");
   revalidatePath("/dashboard");
   revalidatePath("/analytics");
+  revalidatePath("/rooms");
+  revalidatePath("/my-bookings");
 }
 
 export async function createBooking(data: {

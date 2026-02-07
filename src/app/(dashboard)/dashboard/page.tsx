@@ -98,7 +98,7 @@ export default function DashboardPage() {
         <BentoCard colSpan={1} delay={0.4}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Upcoming Meetings</h2>
-            <Link href="/schedule" className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400">
+            <Link href="/my-bookings" className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400">
               View all <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
@@ -106,7 +106,7 @@ export default function DashboardPage() {
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <CalendarCheck className="mb-3 h-10 w-10 text-zinc-300" />
               <p className="text-sm text-zinc-400">No upcoming meetings</p>
-              <Link href="/book" className="mt-2 text-xs font-medium text-violet-600 hover:text-violet-700">
+              <Link href="/rooms" className="mt-2 text-xs font-medium text-violet-600 hover:text-violet-700">
                 Book a room
               </Link>
             </div>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
         <BentoCard colSpan={1} delay={0.5}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Quick Book</h2>
-            <Link href="/book" className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400">
+            <Link href="/rooms" className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400">
               All rooms <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
@@ -154,7 +154,7 @@ export default function DashboardPage() {
                 transition={{ delay: 0.6 + i * 0.05 }}
               >
                 <Link
-                  href={`/book/${room.id}`}
+                  href={`/rooms/${room.id}`}
                   className="flex flex-col gap-1 rounded-xl border border-zinc-200/60 bg-zinc-50 p-3 transition-all duration-200 hover:border-violet-300 hover:bg-violet-50 hover:shadow-sm dark:border-zinc-700/60 dark:bg-zinc-800/50 dark:hover:border-violet-700 dark:hover:bg-violet-900/20"
                 >
                   <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{room.name}</span>
