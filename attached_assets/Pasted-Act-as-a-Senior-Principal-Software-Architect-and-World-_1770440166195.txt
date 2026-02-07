@@ -1,0 +1,56 @@
+Act as a **Senior Principal Software Architect** and **World-Class UI/UX Designer**. I want you to build "MarkPlus Meet", a premium, high-performance Meeting Room Booking System using **Next.js 14+ (App Router)**.
+
+**GOAL:** Create a "Million Dollar App" experience. It must be mobile-first, visually stunning (Apple-like aesthetics), and extremely fast.
+
+### 1. THE TECH STACK (Strict Requirements)
+- **Framework:** Next.js 14+ (App Router) with TypeScript.
+- **Styling:** Tailwind CSS + **Shadcn/UI** (use the latest version).
+- **Animation:** **Framer Motion** (Mandatory for page transitions, card hovers, and modal appearances).
+- **Database:** Prisma ORM connected to an external PostgreSQL.
+- **Auth:** NextAuth.js v5 (Auth.js).
+- **State Management:** TanStack Query (React Query) for data fetching.
+- **Icons:** Lucide-React.
+- **Feedback:** Sonner (for premium toast notifications).
+
+### 2. DATABASE & CONNECTION
+I have already set up the `DATABASE_URL` in the Replit Secrets (connecting to my private VPS).
+- **Action:** Initialize Prisma immediately.
+- **Provider:** Use `provider = "postgresql"` in `schema.prisma`.
+- **Constraint:** Do NOT use SQLite. Connect directly to the provided Postgres URL.
+
+### 3. DATABASE SCHEMA (Prisma Models)
+Create these exact models with appropriate relationships:
+- **User:** `id`, `name`, `email` (unique), `password` (hashed), `role` (enum: EMPLOYEE, ADMIN, SUPER_ADMIN), `avatar`, `createdAt`.
+- **Room:** `id`, `name`, `category` (enum: PUBLIC, SPECIAL), `capacity`, `facilities` (String[]), `imageUrl`, `isActive`.
+- **Booking:** `id`, `startTime`, `endTime`, `title`, `description`, `userId`, `roomId`, `status` (CONFIRMED, CANCELLED, PENDING), `createdAt`.
+
+### 4. BUSINESS LOGIC (The "MarkPlus" Rules)
+- **Seeding (Crucial):** - Create 7 PUBLIC rooms: "Meet 1" to "Meet 7".
+  - Create 3 SPECIAL rooms: "Philip Kotler Classroom", "MarkPlus Gallery", "Museum of Marketing".
+- **Access Control (RBAC):**
+  - Role `EMPLOYEE`: Can ONLY book `PUBLIC` rooms.
+  - Role `ADMIN` & `SUPER_ADMIN`: Can book `ALL` rooms.
+- **Conflict Logic:** Strictly prevent overlapping bookings for the same room.
+
+### 5. UI/UX DESIGN GUIDELINES (World Class Standard)
+- **Mobile-First Layout:**
+  - **Mobile:** Implement a floating, glassmorphism **Bottom Navigation Bar** (Home, Book, My Schedule, Profile).
+  - **Desktop:** A sleek, collapsible sidebar.
+- **Visual Style:**
+  - Use a "Bento Grid" layout for the Dashboard.
+  - Use extensive **Glassmorphism** (backdrop-blur-md) on cards and headers.
+  - Typography: Use `Inter` or `Geist Sans` for a clean, corporate look.
+  - **Optimistic UI:** The app must feel instant. Show the booking as "done" immediately while processing in the background.
+- **The Booking Experience (The "Wow" Factor):**
+  - **Do NOT** use simple dropdowns for time.
+  - **USE** a **Visual Timeline / Gantt View**: Users scroll horizontally to see time slots. Green blocks = Available, Red blocks = Booked.
+  - Users tap an empty slot to book.
+
+### 6. EXECUTION PLAN
+1. **Setup:** Initialize the Next.js app with the stack above.
+2. **Database:** Define Prisma schema and run `npx prisma db push` to connect to my VPS.
+3. **Seed:** Run the seed script to populate the 10 rooms.
+4. **Components:** Build the "World Class" UI components (Bottom Nav, Bento Grid, Timeline).
+5. **Logic:** Implement Server Actions for booking with conflict checks.
+
+**IMPORTANT:** Start by setting up the database connection and verifying you can talk to my VPS. Ask me for the `DATABASE_URL` if it's missing, otherwise, proceed immediately.
