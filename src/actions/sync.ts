@@ -38,7 +38,7 @@ export async function syncFromGoogleSheet() {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: "Sheet1!A2:O",
+      range: "meets!A2:O",
     });
 
     rows = (response.data.values || []) as string[][];

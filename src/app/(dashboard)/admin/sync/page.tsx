@@ -173,7 +173,7 @@ export default function AdminSyncPage() {
             </p>
             <div className="mt-3 rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
               <p className="text-xs text-amber-700 dark:text-amber-400">
-                <strong>Sheet:</strong> &quot;Sheet1&quot; | <strong>Columns:</strong> A: ID | B: Room Name | D: User Email | F: Start (UTC) | G: End (UTC) | H: Participants | I: Status
+                <strong>Sheet:</strong> &quot;meets&quot; | <strong>Columns:</strong> A: ID | B: Room Name | D: User Email | F: Start (UTC) | G: End (UTC) | H: Participants | I: Status
               </p>
             </div>
           </div>

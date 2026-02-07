@@ -60,7 +60,7 @@ prisma/
 - **Responsive Modal**: Desktop = centered Dialog, Mobile = Bottom Sheet (vaul Drawer)
 - **Dark Mode**: Class-based toggle with localStorage persistence
 - **Analytics**: Room usage, daily/hourly trends (recharts)
-- **Google Sheets Sync**: Users sync (sheet "user") + Bookings sync (sheet "Sheet1")
+- **Google Sheets Sync**: Users sync (sheet "user") + Bookings sync (sheet "meets")
 - **Glassmorphic UI**: backdrop-blur, gradients, animations
 - **Mobile-first**: Bottom nav (mobile), collapsible sidebar (desktop)
 
