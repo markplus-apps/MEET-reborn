@@ -21,6 +21,7 @@ export default function BookPage() {
     queryKey: ["rooms"],
     queryFn: async () => {
       const res = await fetch("/api/rooms");
+      if (!res.ok) throw new Error("Failed to fetch rooms");
       return res.json();
     },
   });

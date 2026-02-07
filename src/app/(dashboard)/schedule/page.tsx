@@ -17,6 +17,7 @@ export default function SchedulePage() {
     queryKey: ["myBookings"],
     queryFn: async () => {
       const res = await fetch("/api/bookings?my=true");
+      if (!res.ok) throw new Error("Failed to fetch bookings");
       return res.json();
     },
     refetchInterval: 60000,

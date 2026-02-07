@@ -15,6 +15,7 @@ export default function ProfilePage() {
     queryKey: ["stats"],
     queryFn: async () => {
       const res = await fetch("/api/stats");
+      if (!res.ok) throw new Error("Failed to fetch stats");
       return res.json();
     },
   });

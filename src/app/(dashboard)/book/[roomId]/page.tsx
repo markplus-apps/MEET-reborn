@@ -26,6 +26,7 @@ export default function RoomBookingPage({ params }: { params: Promise<{ roomId: 
     queryKey: ["room", roomId],
     queryFn: async () => {
       const res = await fetch("/api/rooms");
+      if (!res.ok) throw new Error("Failed to fetch rooms");
       const rooms = await res.json();
       return rooms.find((r: { id: string }) => r.id === roomId);
     },
@@ -35,6 +36,7 @@ export default function RoomBookingPage({ params }: { params: Promise<{ roomId: 
     queryKey: ["bookings", roomId, dateStr],
     queryFn: async () => {
       const res = await fetch(`/api/bookings?roomId=${roomId}&date=${dateStr}`);
+      if (!res.ok) throw new Error("Failed to fetch bookings");
       return res.json();
     },
     refetchInterval: 60000,

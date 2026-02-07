@@ -7,12 +7,12 @@
     "build": "next build",
     "start": "next start --port 5000 --hostname 0.0.0.0",
     "lint": "eslint",
-    "seed": "npx tsx prisma/seed.ts",
+    "seed": "npx tsx prisma/seed.mts",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push"
   },
   "prisma": {
-    "seed": "npx tsx prisma/seed.ts"
+    "seed": "npx tsx prisma/seed.mts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
