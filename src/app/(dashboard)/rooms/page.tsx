@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { formatWIB } from "@/lib/timezone";
 import { cancelBooking, checkInBooking, endBookingEarly, extendBooking, modifyBooking } from "@/actions/booking";
 import { toast } from "sonner";
-import { format, addDays, subDays, isToday } from "date-fns";
+import { format, addDays, subDays, isToday, isSameDay, startOfDay } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { useSearchParams } from "next/navigation";
@@ -102,6 +102,7 @@ export default function RoomsPage() {
   const tabParam = searchParams.get("tab") === "schedule" ? "schedule" : "rooms";
   const [activeTab, setActiveTab] = useState<"rooms" | "schedule">(tabParam);
   const [desktopSearch, setDesktopSearch] = useState("");
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
     setActiveTab(tabParam);
@@ -109,6 +110,8 @@ export default function RoomsPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
+
+  const todayActive = isToday(selectedDate);
 
   return (
     <div className="space-y-4 p-4 md:space-y-6 md:p-6">
@@ -128,7 +131,28 @@ export default function RoomsPage() {
             />
           </div>
         ) : (
-          <div />
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 rounded-xl border border-zinc-200/80 bg-white/80 p-1 backdrop-blur-sm dark:border-zinc-700/60 dark:bg-zinc-800/80">
+              <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => subDays(d, 1))} className="h-8 w-8">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <button
+                onClick={() => setSelectedDate(new Date())}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700"
+              >
+                <CalendarIcon className="h-3.5 w-3.5" />
+                <span>{format(selectedDate, "EEEE, d MMMM yyyy", { locale: localeId })}</span>
+              </button>
+              {!todayActive && (
+                <Button variant="ghost" size="sm" onClick={() => setSelectedDate(new Date())} className="h-8 text-xs text-violet-600 dark:text-violet-400">
+                  Hari ini
+                </Button>
+              )}
+              <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => addDays(d, 1))} className="h-8 w-8">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         )}
         <div className="flex rounded-xl border border-zinc-200/80 bg-white/80 p-1 backdrop-blur-sm dark:border-zinc-700/60 dark:bg-zinc-800/80">
           {(["rooms", "schedule"] as const).map((tab) => (
@@ -174,7 +198,7 @@ export default function RoomsPage() {
             exit={{ opacity: 0, x: -10 }}
             transition={{ duration: 0.2 }}
           >
-            <ScheduleTab mounted={mounted} />
+            <ScheduleTab mounted={mounted} selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -365,7 +389,109 @@ function RoomCard({ room, index }: { room: RoomData; index: number }) {
   );
 }
 
-function ScheduleTab({ mounted }: { mounted: boolean }) {
+function MobileDateStrip({ selectedDate, setSelectedDate }: { selectedDate: Date; setSelectedDate: React.Dispatch<React.SetStateAction<Date>> }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [dateRange, setDateRange] = useState(() => {
+    const today = startOfDay(new Date());
+    return Array.from({ length: 15 }, (_, i) => addDays(today, i - 7));
+  });
+
+  const todayActive = isToday(selectedDate);
+  const dayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const selectedIdx = dateRange.findIndex((d) => isSameDay(d, selectedDate));
+    if (selectedIdx === -1) return;
+    const itemWidth = 52;
+    const containerWidth = el.clientWidth;
+    const scrollTo = selectedIdx * itemWidth - containerWidth / 2 + itemWidth / 2;
+    el.scrollTo({ left: Math.max(0, scrollTo), behavior: "smooth" });
+  }, [selectedDate, dateRange]);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (el.scrollLeft < 40) {
+      const firstDate = dateRange[0];
+      const newDates = Array.from({ length: 7 }, (_, i) => addDays(firstDate, -(7 - i)));
+      setDateRange((prev) => [...newDates, ...prev]);
+      requestAnimationFrame(() => {
+        el.scrollLeft += 7 * 52;
+      });
+    }
+    if (el.scrollLeft + el.clientWidth > el.scrollWidth - 40) {
+      const lastDate = dateRange[dateRange.length - 1];
+      const newDates = Array.from({ length: 7 }, (_, i) => addDays(lastDate, i + 1));
+      setDateRange((prev) => [...prev, ...newDates]);
+    }
+  }, [dateRange]);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between px-1">
+        <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+          {format(selectedDate, "MMMM yyyy", { locale: localeId })}
+        </span>
+        {!todayActive && (
+          <button
+            onClick={() => setSelectedDate(new Date())}
+            className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700 transition-colors active:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-400"
+          >
+            Hari ini
+          </button>
+        )}
+      </div>
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="-mx-4 flex gap-1 overflow-x-auto px-4 scrollbar-none"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
+      >
+        {dateRange.map((date) => {
+          const isSelected = isSameDay(date, selectedDate);
+          const isCurrentDay = isToday(date);
+          return (
+            <button
+              key={date.toISOString()}
+              onClick={() => setSelectedDate(date)}
+              className={cn(
+                "flex flex-col items-center justify-center rounded-xl px-2.5 py-2 transition-all duration-200 min-w-[48px]",
+                isSelected
+                  ? "bg-violet-600 text-white shadow-lg shadow-violet-500/25 scale-105"
+                  : isCurrentDay
+                  ? "bg-violet-50 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400"
+                  : "text-zinc-500 active:bg-zinc-100 dark:text-zinc-400 dark:active:bg-zinc-800"
+              )}
+            >
+              <span className={cn(
+                "text-[10px] font-semibold uppercase leading-tight",
+                isSelected ? "text-violet-200" : isCurrentDay ? "text-violet-500 dark:text-violet-400" : "text-zinc-400 dark:text-zinc-500"
+              )}>
+                {dayNames[date.getDay()]}
+              </span>
+              <span className={cn(
+                "text-lg font-bold leading-tight",
+                isSelected ? "text-white" : ""
+              )}>
+                {format(date, "d")}
+              </span>
+              {isCurrentDay && !isSelected && (
+                <div className="mt-0.5 h-1 w-1 rounded-full bg-violet-500" />
+              )}
+              {isSelected && (
+                <div className="mt-0.5 h-1 w-1 rounded-full bg-white" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ScheduleTab({ mounted, selectedDate, setSelectedDate }: { mounted: boolean; selectedDate: Date; setSelectedDate: React.Dispatch<React.SetStateAction<Date>> }) {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
@@ -373,7 +499,6 @@ function ScheduleTab({ mounted }: { mounted: boolean }) {
   const userRole = (session?.user as { role?: string })?.role;
   const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
 
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedRooms, setSelectedRooms] = useState<Set<string>>(new Set());
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
@@ -509,42 +634,23 @@ function ScheduleTab({ mounted }: { mounted: boolean }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          {todayActive && activeCount > 0 && (
-            <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 dark:bg-emerald-900/20">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-              </span>
-              <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                {activeCount} meeting aktif
-              </span>
-            </div>
-          )}
-        </div>
+      {isMobile && (
+        <MobileDateStrip selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+      )}
 
-        <div className="flex items-center gap-1 rounded-xl border border-zinc-200/80 bg-white/80 p-1 backdrop-blur-sm dark:border-zinc-700/60 dark:bg-zinc-800/80">
-          <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => subDays(d, 1))} className="h-8 w-8">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <button
-            onClick={() => setSelectedDate(new Date())}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700"
-          >
-            <CalendarIcon className="h-3.5 w-3.5" />
-            <span>{format(selectedDate, "d MMM", { locale: localeId })}</span>
-          </button>
-          {!todayActive && (
-            <Button variant="ghost" size="sm" onClick={() => setSelectedDate(new Date())} className="h-8 text-xs text-violet-600 dark:text-violet-400">
-              Today
-            </Button>
-          )}
-          <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => addDays(d, 1))} className="h-8 w-8">
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+      {todayActive && activeCount > 0 && (
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 dark:bg-emerald-900/20">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+              {activeCount} meeting aktif
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       <Card glass className="p-3 sm:p-4">
         <div className="space-y-2.5">
