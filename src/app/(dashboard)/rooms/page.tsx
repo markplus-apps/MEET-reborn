@@ -199,6 +199,7 @@ export default function RoomsPage() {
             transition={{ duration: 0.2 }}
           >
             <ScheduleTab mounted={mounted} selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+            <MobileDateStrip selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -429,63 +430,65 @@ function MobileDateStrip({ selectedDate, setSelectedDate }: { selectedDate: Date
   }, [dateRange]);
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between px-1">
-        <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-          {format(selectedDate, "MMMM yyyy", { locale: localeId })}
-        </span>
-        {!todayActive && (
-          <button
-            onClick={() => setSelectedDate(new Date())}
-            className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700 transition-colors active:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-400"
-          >
-            Hari ini
-          </button>
-        )}
-      </div>
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="-mx-4 flex gap-1 overflow-x-auto px-4 scrollbar-none"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
-      >
-        {dateRange.map((date) => {
-          const isSelected = isSameDay(date, selectedDate);
-          const isCurrentDay = isToday(date);
-          return (
+    <div className="fixed bottom-[72px] left-0 right-0 z-35 md:hidden">
+      <div className="mx-3 rounded-2xl border border-white/30 bg-white/75 px-2 py-2 shadow-lg shadow-black/5 backdrop-blur-xl dark:border-zinc-700/40 dark:bg-zinc-900/75">
+        <div className="mb-1.5 flex items-center justify-between px-2">
+          <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            {format(selectedDate, "MMMM yyyy", { locale: localeId })}
+          </span>
+          {!todayActive && (
             <button
-              key={date.toISOString()}
-              onClick={() => setSelectedDate(date)}
-              className={cn(
-                "flex flex-col items-center justify-center rounded-xl px-2.5 py-2 transition-all duration-200 min-w-[48px]",
-                isSelected
-                  ? "bg-violet-600 text-white shadow-lg shadow-violet-500/25 scale-105"
-                  : isCurrentDay
-                  ? "bg-violet-50 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400"
-                  : "text-zinc-500 active:bg-zinc-100 dark:text-zinc-400 dark:active:bg-zinc-800"
-              )}
+              onClick={() => setSelectedDate(new Date())}
+              className="rounded-full bg-violet-500/15 px-2.5 py-0.5 text-[10px] font-bold text-violet-600 transition-colors active:bg-violet-500/25 dark:text-violet-400"
             >
-              <span className={cn(
-                "text-[10px] font-semibold uppercase leading-tight",
-                isSelected ? "text-violet-200" : isCurrentDay ? "text-violet-500 dark:text-violet-400" : "text-zinc-400 dark:text-zinc-500"
-              )}>
-                {dayNames[date.getDay()]}
-              </span>
-              <span className={cn(
-                "text-lg font-bold leading-tight",
-                isSelected ? "text-white" : ""
-              )}>
-                {format(date, "d")}
-              </span>
-              {isCurrentDay && !isSelected && (
-                <div className="mt-0.5 h-1 w-1 rounded-full bg-violet-500" />
-              )}
-              {isSelected && (
-                <div className="mt-0.5 h-1 w-1 rounded-full bg-white" />
-              )}
+              Hari ini
             </button>
-          );
-        })}
+          )}
+        </div>
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex gap-0.5 overflow-x-auto"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
+        >
+          {dateRange.map((date) => {
+            const isSelected = isSameDay(date, selectedDate);
+            const isCurrentDay = isToday(date);
+            return (
+              <button
+                key={date.toISOString()}
+                onClick={() => setSelectedDate(date)}
+                className={cn(
+                  "flex flex-col items-center justify-center rounded-xl px-2 py-1.5 transition-all duration-200 min-w-[44px]",
+                  isSelected
+                    ? "bg-violet-600 text-white shadow-md shadow-violet-500/30 scale-105"
+                    : isCurrentDay
+                    ? "bg-violet-100/60 text-violet-700 dark:bg-violet-800/30 dark:text-violet-400"
+                    : "text-zinc-500 active:bg-zinc-200/50 dark:text-zinc-400 dark:active:bg-zinc-700/50"
+                )}
+              >
+                <span className={cn(
+                  "text-[9px] font-semibold uppercase leading-tight",
+                  isSelected ? "text-violet-200" : isCurrentDay ? "text-violet-500 dark:text-violet-400" : "text-zinc-400 dark:text-zinc-500"
+                )}>
+                  {dayNames[date.getDay()]}
+                </span>
+                <span className={cn(
+                  "text-base font-bold leading-tight",
+                  isSelected ? "text-white" : ""
+                )}>
+                  {format(date, "d")}
+                </span>
+                {isCurrentDay && !isSelected && (
+                  <div className="mt-0.5 h-1 w-1 rounded-full bg-violet-500" />
+                )}
+                {isSelected && (
+                  <div className="mt-0.5 h-1 w-1 rounded-full bg-white/80" />
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -633,11 +636,7 @@ function ScheduleTab({ mounted, selectedDate, setSelectedDate }: { mounted: bool
   });
 
   return (
-    <div className="space-y-4">
-      {isMobile && (
-        <MobileDateStrip selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
-      )}
-
+    <div className={cn("space-y-4", isMobile && "pb-24")}>
       {todayActive && activeCount > 0 && (
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 dark:bg-emerald-900/20">
