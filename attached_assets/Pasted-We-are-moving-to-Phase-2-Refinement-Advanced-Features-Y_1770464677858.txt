@@ -1,0 +1,42 @@
+We are moving to **Phase 2: Refinement & Advanced Features**.
+You have built a solid MVP. but I need you to **REFACTOR** and **ADD** specific features based on my testing feedback.
+
+Here are the specific tasks to execute on the CURRENT project:
+
+### 1. UX & UI FIXES (Critical)
+- **Mobile Viewport Fix:** The UI is cut off on mobile devices. Fix the CSS (likely `overflow-x-hidden` on body and padding-bottom for the sticky nav). Ensure the Bottom Nav is fixed properly.
+- **Fix Auto-Refresh:** The current auto-refresh logic interrupts user input. **Logic Change:** Disable/Pause the TanStack Query polling/refetching whenever the "Booking Modal" is open.
+- **"Live" Visualizer:** Update the Room Card component. If a room is currently occupied (time matches now), show a **Pulsing Red Border** and a "LIVE" badge.
+- **Dark Mode:** Add a theme toggle (Sun/Moon). Use `Slate-950` or `Zinc-900` for the dark theme.
+
+### 2. UPGRADE BOOKING LOGIC
+- **Flexible Time:** Remove the fixed 30-minute slots. Replace with a **Time Picker** (Start Time & End Time) so users can book exact times (e.g., 09:30 to 10:15).
+- **"Book Now" Button:** Add a quick action button that presets `Start=Now` and `End=Now+1hr` (editable).
+- **Participant Count:** Add a number input field to the Booking Form for `participantCount`.
+- **Modify Booking:** Allow users to **Extend** (update endTime if slot is free) or **End Early** (update endTime to Now) via the Booking Detail modal.
+
+### 3. DATABASE & SYNC (New Features)
+- **Schema Update:** Update `schema.prisma` to add:
+  - `Booking`: `participantCount` (Int), `checkInStatus` (Enum: PENDING, CHECKED_IN, MISSED), `googleSheetRowId` (String?).
+  - `User`: `googleSheetRowId` (String?), `image` (String?).
+  - Run `npx prisma db push` after updating.
+- **Legacy Sync Feature:**
+  - Create an Admin Page `/admin/sync`.
+  - Add a button **"Pull from Legacy Sheets"**.
+  - Use `googleapis` with the Secrets (`GOOGLE_SHEET_ID`, etc.) to read the Google Sheet rows and upsert them into the Postgres database.
+
+### 4. WOW FACTORS
+- **Ghost Meeting Killer:** Add a "Check-In" button logic. (We will implement the cron job later, just build the UI/Status logic for now).
+- **Analytics:** Add a `/analytics` page with `recharts` showing Room Usage stats.
+
+### 5. INTEGRATION CHECKS
+- Ensure Email Notifications (Brevo) are working for the new Booking Logic.
+- Ensure all Time calculations use **Asia/Jakarta** timezone strictly.
+
+**EXECUTION ORDER:**
+1. Update Prisma Schema & Push.
+2. Fix Mobile CSS & Polling Logic.
+3. Implement Flexible Time Picker & Participant Count.
+4. Build the Google Sheet Sync feature.
+
+**Proceed with modification.**

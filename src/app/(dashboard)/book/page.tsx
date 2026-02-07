@@ -5,9 +5,10 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building2, Users, Wifi, Monitor, Mic, ChevronRight, Lock } from "lucide-react";
+import { Building2, Users, Wifi, Monitor, Mic, ChevronRight, Lock, Radio } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { formatWIB } from "@/lib/timezone";
 
 const facilityIcons: Record<string, React.ReactNode> = {
   WiFi: <Wifi className="h-3 w-3" />,
@@ -15,6 +16,21 @@ const facilityIcons: Record<string, React.ReactNode> = {
   "Video Conference": <Monitor className="h-3 w-3" />,
   "Sound System": <Mic className="h-3 w-3" />,
 };
+
+interface RoomData {
+  id: string;
+  name: string;
+  category: string;
+  capacity: number;
+  facilities: string[];
+  canBook: boolean;
+  isOccupied: boolean;
+  currentMeeting: {
+    title: string;
+    user: string;
+    endTime: string;
+  } | null;
+}
 
 export default function BookPage() {
   const { data: rooms, isLoading } = useQuery({
@@ -24,10 +40,11 @@ export default function BookPage() {
       if (!res.ok) throw new Error("Failed to fetch rooms");
       return res.json();
     },
+    refetchInterval: 60000,
   });
 
-  const publicRooms = (rooms || []).filter((r: { category: string }) => r.category === "PUBLIC");
-  const specialRooms = (rooms || []).filter((r: { category: string }) => r.category === "SPECIAL");
+  const publicRooms = (rooms || []).filter((r: RoomData) => r.category === "PUBLIC");
+  const specialRooms = (rooms || []).filter((r: RoomData) => r.category === "SPECIAL");
 
   return (
     <div className="space-y-6 p-4 md:p-6">
@@ -55,7 +72,7 @@ export default function BookPage() {
               <Badge variant="secondary">{publicRooms.length}</Badge>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {publicRooms.map((room: { id: string; name: string; category: string; capacity: number; facilities: string[]; canBook: boolean }, i: number) => (
+              {publicRooms.map((room: RoomData, i: number) => (
                 <RoomCard key={room.id} room={room} index={i} />
               ))}
             </div>
@@ -68,7 +85,7 @@ export default function BookPage() {
               <Badge variant="warning">{specialRooms.length}</Badge>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {specialRooms.map((room: { id: string; name: string; category: string; capacity: number; facilities: string[]; canBook: boolean }, i: number) => (
+              {specialRooms.map((room: RoomData, i: number) => (
                 <RoomCard key={room.id} room={room} index={i} />
               ))}
             </div>
@@ -79,7 +96,7 @@ export default function BookPage() {
   );
 }
 
-function RoomCard({ room, index }: { room: { id: string; name: string; category: string; capacity: number; facilities: string[]; canBook: boolean }; index: number }) {
+function RoomCard({ room, index }: { room: RoomData; index: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -89,7 +106,8 @@ function RoomCard({ room, index }: { room: { id: string; name: string; category:
     >
       <Card glass className={cn(
         "group relative overflow-hidden transition-all duration-300 hover:shadow-xl",
-        !room.canBook && "opacity-75"
+        !room.canBook && "opacity-75",
+        room.isOccupied && "border-2 border-red-500 animate-pulse-border"
       )}>
         <div className={cn(
           "absolute inset-x-0 top-0 h-1",
@@ -97,6 +115,15 @@ function RoomCard({ room, index }: { room: { id: string; name: string; category:
             ? "bg-gradient-to-r from-amber-400 to-orange-500"
             : "bg-gradient-to-r from-violet-500 to-purple-500"
         )} />
+
+        {room.isOccupied && (
+          <div className="absolute right-3 top-3">
+            <Badge variant="destructive" className="gap-1 animate-pulse">
+              <Radio className="h-3 w-3" />
+              LIVE
+            </Badge>
+          </div>
+        )}
 
         <div className="space-y-3">
           <div className="flex items-start justify-between">
@@ -107,10 +134,21 @@ function RoomCard({ room, index }: { room: { id: string; name: string; category:
                 <span>{room.capacity} people</span>
               </div>
             </div>
-            <Badge variant={room.category === "SPECIAL" ? "warning" : "default"}>
-              {room.category}
-            </Badge>
+            {!room.isOccupied && (
+              <Badge variant={room.category === "SPECIAL" ? "warning" : "default"}>
+                {room.category}
+              </Badge>
+            )}
           </div>
+
+          {room.isOccupied && room.currentMeeting && (
+            <div className="rounded-lg bg-red-50 px-3 py-2 dark:bg-red-900/20">
+              <p className="text-xs font-medium text-red-700 dark:text-red-400 truncate">{room.currentMeeting.title}</p>
+              <p className="text-[10px] text-red-500 dark:text-red-400/70">
+                by {room.currentMeeting.user} • until {formatWIB(new Date(room.currentMeeting.endTime), "HH:mm")} WIB
+              </p>
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-1.5">
             {room.facilities.slice(0, 4).map((f) => (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Dialog, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { createBooking } from "@/actions/booking";
 import { formatWIB } from "@/lib/timezone";
 import { toast } from "sonner";
-import { Clock, MapPin, Users } from "lucide-react";
+import { Clock, MapPin, Users, UserPlus } from "lucide-react";
+import { format } from "date-fns";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
 
 interface BookingModalProps {
   open: boolean;
@@ -22,13 +24,46 @@ interface BookingModalProps {
   } | null;
   startTime: Date | null;
   endTime: Date | null;
+  onStartTimeChange?: (date: Date) => void;
+  onEndTimeChange?: (date: Date) => void;
   onSuccess: () => void;
 }
 
-export function BookingModal({ open, onClose, room, startTime, endTime, onSuccess }: BookingModalProps) {
+export function BookingModal({ open, onClose, room, startTime, endTime, onStartTimeChange, onEndTimeChange, onSuccess }: BookingModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [participantCount, setParticipantCount] = useState(1);
   const [isPending, startTransition] = useTransition();
+
+  const [startTimeStr, setStartTimeStr] = useState("");
+  const [endTimeStr, setEndTimeStr] = useState("");
+
+  useEffect(() => {
+    if (startTime) {
+      setStartTimeStr(formatWIB(startTime, "HH:mm"));
+    }
+    if (endTime) {
+      setEndTimeStr(formatWIB(endTime, "HH:mm"));
+    }
+  }, [startTime, endTime]);
+
+  const handleTimeChange = (type: "start" | "end", value: string) => {
+    if (!startTime) return;
+    const [hours, minutes] = value.split(":").map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return;
+
+    const zonedBase = toZonedTime(startTime, "Asia/Jakarta");
+    zonedBase.setHours(hours, minutes, 0, 0);
+    const utcDate = fromZonedTime(zonedBase, "Asia/Jakarta");
+
+    if (type === "start") {
+      setStartTimeStr(value);
+      onStartTimeChange?.(utcDate);
+    } else {
+      setEndTimeStr(value);
+      onEndTimeChange?.(utcDate);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +76,7 @@ export function BookingModal({ open, onClose, room, startTime, endTime, onSucces
         description: description || undefined,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
+        participantCount,
       });
 
       if (result.error) {
@@ -51,6 +87,7 @@ export function BookingModal({ open, onClose, room, startTime, endTime, onSucces
         });
         setTitle("");
         setDescription("");
+        setParticipantCount(1);
         onClose();
         onSuccess();
       }
@@ -78,12 +115,39 @@ export function BookingModal({ open, onClose, room, startTime, endTime, onSucces
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-violet-500" />
             <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              {formatWIB(startTime, "EEEE, dd MMM yyyy")} • {formatWIB(startTime, "HH:mm")} - {formatWIB(endTime, "HH:mm")} WIB
+              {formatWIB(startTime, "EEEE, dd MMM yyyy")}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-violet-500" />
             <span className="text-sm text-zinc-600 dark:text-zinc-400">Capacity: {room.capacity} people</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Start Time (WIB)</label>
+            <input
+              type="time"
+              value={startTimeStr}
+              onChange={(e) => handleTimeChange("start", e.target.value)}
+              min="07:00"
+              max="21:00"
+              step="300"
+              className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white/80 px-3 py-2 text-sm backdrop-blur-sm transition-all duration-200 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">End Time (WIB)</label>
+            <input
+              type="time"
+              value={endTimeStr}
+              onChange={(e) => handleTimeChange("end", e.target.value)}
+              min="07:00"
+              max="21:00"
+              step="300"
+              className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white/80 px-3 py-2 text-sm backdrop-blur-sm transition-all duration-200 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+            />
           </div>
         </div>
 
@@ -95,6 +159,21 @@ export function BookingModal({ open, onClose, room, startTime, endTime, onSucces
             onChange={(e) => setTitle(e.target.value)}
             required
           />
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Participants</label>
+            <div className="flex items-center gap-3">
+              <UserPlus className="h-4 w-4 text-violet-500" />
+              <input
+                type="number"
+                min={1}
+                max={room.capacity}
+                value={participantCount}
+                onChange={(e) => setParticipantCount(Math.min(room.capacity, Math.max(1, parseInt(e.target.value) || 1)))}
+                className="flex h-11 w-24 rounded-xl border border-zinc-200 bg-white/80 px-3 py-2 text-sm text-center backdrop-blur-sm transition-all duration-200 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+              />
+              <span className="text-xs text-zinc-400">/ {room.capacity} max</span>
+            </div>
+          </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Description (Optional)</label>
             <textarea

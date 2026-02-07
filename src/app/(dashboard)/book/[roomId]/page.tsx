@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Timeline } from "@/components/booking/timeline";
@@ -8,10 +8,10 @@ import { BookingModal } from "@/components/booking/booking-modal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { generateTimeSlots, formatWIB } from "@/lib/timezone";
-import { ChevronLeft, ChevronRight, Users, MapPin, Calendar } from "lucide-react";
+import { generateTimeSlots, formatWIB, createWIBDateTime } from "@/lib/timezone";
+import { ChevronLeft, ChevronRight, Users, MapPin, Calendar, Zap } from "lucide-react";
 import Link from "next/link";
-import { format, addDays, subDays } from "date-fns";
+import { format, addDays, subDays, addHours } from "date-fns";
 
 export default function RoomBookingPage({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = use(params);
@@ -39,7 +39,7 @@ export default function RoomBookingPage({ params }: { params: Promise<{ roomId: 
       if (!res.ok) throw new Error("Failed to fetch bookings");
       return res.json();
     },
-    refetchInterval: 60000,
+    refetchInterval: modalOpen ? false : 60000,
   });
 
   const slots = generateTimeSlots(selectedDate);
@@ -53,6 +53,17 @@ export default function RoomBookingPage({ params }: { params: Promise<{ roomId: 
       setSelectedEnd(end);
       setModalOpen(true);
     }
+  };
+
+  const handleBookNow = () => {
+    const now = new Date();
+    const roundedMinutes = Math.ceil(now.getMinutes() / 5) * 5;
+    const start = new Date(now);
+    start.setMinutes(roundedMinutes, 0, 0);
+    const end = addHours(start, 1);
+    setSelectedStart(start);
+    setSelectedEnd(end);
+    setModalOpen(true);
   };
 
   const handleBookingSuccess = () => {
@@ -91,6 +102,10 @@ export default function RoomBookingPage({ params }: { params: Promise<{ roomId: 
             <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{room.facilities.slice(0, 3).join(", ")}</span>
           </div>
         </motion.div>
+        <Button onClick={handleBookNow} size="sm" className="gap-1.5">
+          <Zap className="h-3.5 w-3.5" />
+          Book Now
+        </Button>
       </div>
 
       <Card glass>
@@ -140,6 +155,8 @@ export default function RoomBookingPage({ params }: { params: Promise<{ roomId: 
         room={room}
         startTime={selectedStart}
         endTime={selectedEnd}
+        onStartTimeChange={setSelectedStart}
+        onEndTimeChange={setSelectedEnd}
         onSuccess={handleBookingSuccess}
       />
     </div>

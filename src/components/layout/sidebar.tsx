@@ -2,22 +2,32 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, CalendarPlus, Calendar, User, ChevronLeft, ChevronRight, LogOut, Sparkles } from "lucide-react";
+import { Home, CalendarPlus, Calendar, User, ChevronLeft, ChevronRight, LogOut, Sparkles, BarChart3, FileSpreadsheet } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Home" },
   { href: "/book", icon: CalendarPlus, label: "Book Room" },
   { href: "/schedule", icon: Calendar, label: "My Schedule" },
+  { href: "/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/profile", icon: User, label: "Profile" },
+];
+
+const adminItems = [
+  { href: "/admin/sync", icon: FileSpreadsheet, label: "Legacy Sync" },
 ];
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const userRole = (session?.user as { role?: string })?.role;
+  const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
+
+  const allItems = isAdmin ? [...navItems, ...adminItems] : navItems;
 
   return (
     <motion.aside
@@ -56,7 +66,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {navItems.map((item) => {
+        {allItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link

@@ -24,15 +24,23 @@ enum BookingStatus {
   CANCELLED
 }
 
+enum CheckInStatus {
+  PENDING
+  CHECKED_IN
+  MISSED
+}
+
 model User {
-  id        String    @id @default(cuid())
-  name      String
-  email     String    @unique
-  password  String
-  role      Role      @default(EMPLOYEE)
-  avatar    String?
-  createdAt DateTime  @default(now())
-  bookings  Booking[]
+  id               String    @id @default(cuid())
+  name             String
+  email            String    @unique
+  password         String
+  role             Role      @default(EMPLOYEE)
+  avatar           String?
+  image            String?
+  googleSheetRowId String?
+  createdAt        DateTime  @default(now())
+  bookings         Booking[]
 
   @@map("users")
 }
@@ -51,15 +59,18 @@ model Room {
 }
 
 model Booking {
-  id          String        @id @default(cuid())
-  startTime   DateTime
-  endTime     DateTime
-  title       String
-  description String?
-  userId      String
-  roomId      String
-  status      BookingStatus @default(CONFIRMED)
-  createdAt   DateTime      @default(now())
+  id               String        @id @default(cuid())
+  startTime        DateTime
+  endTime          DateTime
+  title            String
+  description      String?
+  participantCount Int           @default(1)
+  checkInStatus    CheckInStatus @default(PENDING)
+  googleSheetRowId String?
+  userId           String
+  roomId           String
+  status           BookingStatus @default(CONFIRMED)
+  createdAt        DateTime      @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
