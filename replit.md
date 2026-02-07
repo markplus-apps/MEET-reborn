@@ -53,11 +53,14 @@ prisma/
 ```
 
 ## Navigation Structure
-### Desktop (Sidebar)
-Home | Rooms | My Bookings | Analytics | Profile + admin: Google Sheets Sync
+### Desktop (Sidebar + Header)
+- Sidebar: Home | Rooms | My Bookings | Analytics | Profile + admin: Google Sheets Sync
+- Header: Page title + subtitle (left), date/time chip, theme toggle, role badge, avatar (right)
 
-### Mobile (Bottom Nav 4+1)
-Home | Rooms | Bookings | Profile | More (Analytics, Sync, Sign Out)
+### Mobile (Bottom Nav 4+1 + Header)
+- Header: Page title only (non-sticky), no "MEET MarkPlus" branding
+- Bottom Nav: Home | Rooms | Bookings | Profile | More
+- More menu: Horizontal expansion bar above bottom nav (not vertical drawer) — Analytics, Sync, Sign Out laid out in a row for thumb reach
 
 ## Key Features
 - **10 Rooms** (real-world specs):
