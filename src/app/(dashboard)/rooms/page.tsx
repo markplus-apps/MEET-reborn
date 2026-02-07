@@ -101,6 +101,7 @@ export default function RoomsPage() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab") === "schedule" ? "schedule" : "rooms";
   const [activeTab, setActiveTab] = useState<"rooms" | "schedule">(tabParam);
+  const [desktopSearch, setDesktopSearch] = useState("");
 
   useEffect(() => {
     setActiveTab(tabParam);
@@ -114,8 +115,21 @@ export default function RoomsPage() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="hidden items-center justify-end md:flex"
+        className="hidden items-center justify-between gap-4 md:flex"
       >
+        {activeTab === "rooms" ? (
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            <Input
+              placeholder="Search rooms, facilities..."
+              value={desktopSearch}
+              onChange={(e) => setDesktopSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        ) : (
+          <div />
+        )}
         <div className="flex rounded-xl border border-zinc-200/80 bg-white/80 p-1 backdrop-blur-sm dark:border-zinc-700/60 dark:bg-zinc-800/80">
           {(["rooms", "schedule"] as const).map((tab) => (
             <button
@@ -150,7 +164,7 @@ export default function RoomsPage() {
             exit={{ opacity: 0, x: 10 }}
             transition={{ duration: 0.2 }}
           >
-            <RoomsTab />
+            <RoomsTab desktopSearch={desktopSearch} />
           </motion.div>
         ) : (
           <motion.div
@@ -168,8 +182,9 @@ export default function RoomsPage() {
   );
 }
 
-function RoomsTab() {
+function RoomsTab({ desktopSearch }: { desktopSearch: string }) {
   const [search, setSearch] = useState("");
+  const isMobile = useIsMobile();
 
   const { data: rooms, isLoading } = useQuery({
     queryKey: ["rooms"],
@@ -181,22 +196,24 @@ function RoomsTab() {
     refetchInterval: 60000,
   });
 
+  const effectiveSearch = isMobile ? search : desktopSearch;
+
   const filtered = useMemo(() => {
     if (!rooms) return [];
-    if (!search.trim()) return rooms;
-    const q = search.toLowerCase();
+    if (!effectiveSearch.trim()) return rooms;
+    const q = effectiveSearch.toLowerCase();
     return rooms.filter((r: RoomData) =>
       r.name.toLowerCase().includes(q) ||
       r.facilities.some((f: string) => f.toLowerCase().includes(q))
     );
-  }, [rooms, search]);
+  }, [rooms, effectiveSearch]);
 
   const publicRooms = filtered.filter((r: RoomData) => r.category === "PUBLIC");
   const specialRooms = filtered.filter((r: RoomData) => r.category === "SPECIAL");
 
   return (
     <div className="space-y-6">
-      <div className="relative">
+      <div className="relative md:hidden">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
         <Input
           placeholder="Search rooms, facilities..."

@@ -15,6 +15,7 @@ const pageMeta: Record<string, { title: string; subtitle?: string }> = {
   "/analytics": { title: "Analytics", subtitle: "Room usage statistics" },
   "/profile": { title: "Profile", subtitle: "Manage your account" },
   "/admin/sync": { title: "Sheets Sync", subtitle: "Google Sheets two-way sync" },
+  "/admin/users": { title: "User Management", subtitle: "Manage users and roles" },
 };
 
 function getPageMeta(pathname: string) {

@@ -24,7 +24,9 @@ src/
 │   │   │   └── [roomId]/     # Timeline booking for specific room
 │   │   ├── my-bookings/      # User's bookings with modify/extend/cancel
 │   │   ├── analytics/        # Room usage analytics (recharts)
-│   │   ├── admin/sync/       # Legacy Google Sheets sync (admin only)
+│   │   ├── admin/            # Admin section (ADMIN+ required)
+│   │   │   ├── users/        # User Management (CRUD, role assignment)
+│   │   │   └── sync/         # Google Sheets sync (SUPER_ADMIN only)
 │   │   ├── profile/          # User profile + settings
 │   │   ├── book/             # (redirect → /rooms)
 │   │   ├── schedules/        # (redirect → /rooms?tab=schedule)
@@ -34,10 +36,12 @@ src/
 │   │   ├── rooms/            # GET rooms with access control
 │   │   ├── bookings/         # GET bookings with filters
 │   │   ├── stats/            # Dashboard statistics
-│   │   └── analytics/        # Analytics data
+│   │   ├── analytics/        # Analytics data
+│   │   ├── users/            # GET users (admin only)
+│   │   └── profile/avatar/   # POST avatar upload
 │   ├── login/                # Public login page
 │   └── register/             # Public registration page
-├── actions/                  # Server Actions (booking CRUD, auth, sync)
+├── actions/                  # Server Actions (booking CRUD, auth, sync, user mgmt)
 ├── components/
 │   ├── booking/              # Timeline, BookingModal (responsive drawer/dialog)
 │   ├── dashboard/            # BentoGrid, StatsCard

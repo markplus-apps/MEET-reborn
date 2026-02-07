@@ -38,6 +38,8 @@ model User {
   role             Role      @default(EMPLOYEE)
   avatar           String?
   image            String?
+  status           String?
+  bio              String?
   googleSheetRowId String?
   createdAt        DateTime  @default(now())
   bookings         Booking[]

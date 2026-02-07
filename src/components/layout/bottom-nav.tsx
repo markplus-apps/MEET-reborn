@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Building2, Calendar, User, MoreHorizontal, BarChart3, FileSpreadsheet, LogOut, X, CalendarDays } from "lucide-react";
+import { Home, Building2, Calendar, User, MoreHorizontal, BarChart3, FileSpreadsheet, LogOut, X, CalendarDays, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -25,6 +25,7 @@ export function BottomNav() {
   const roomsSubRef = useRef<HTMLDivElement>(null);
   const userRole = (session?.user as { role?: string })?.role;
   const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
+  const isSuperAdmin = userRole === "SUPER_ADMIN";
 
   const isOnRooms = pathname === "/rooms" || pathname.startsWith("/rooms/");
   const currentTab = searchParams.get("tab") === "schedule" ? "schedule" : "rooms";
@@ -93,6 +94,21 @@ export function BottomNav() {
                 Analytics
               </Link>
               {isAdmin && (
+                <Link
+                  href="/admin/users"
+                  onClick={() => setMoreOpen(false)}
+                  className={cn(
+                    "flex flex-col items-center gap-0.5 rounded-xl px-4 py-1.5 text-[10px] font-medium transition-all duration-200",
+                    pathname.startsWith("/admin/users")
+                      ? "bg-violet-100/80 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400"
+                      : "text-zinc-500 active:bg-zinc-100 dark:text-zinc-400 dark:active:bg-zinc-800"
+                  )}
+                >
+                  <Users className="h-5 w-5" />
+                  Users
+                </Link>
+              )}
+              {isSuperAdmin && (
                 <Link
                   href="/admin/sync"
                   onClick={() => setMoreOpen(false)}
