@@ -233,7 +233,8 @@ function MobileDrawer({ open, onClose, children }: { open: boolean; onClose: () 
     <Drawer.Root open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
-        <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 flex flex-col rounded-t-2xl border-t border-zinc-200/60 bg-white dark:border-zinc-700/60 dark:bg-zinc-900">
+        <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 flex flex-col rounded-t-2xl border-t border-zinc-200/60 bg-white dark:border-zinc-700/60 dark:bg-zinc-900" aria-describedby={undefined}>
+          <Drawer.Title className="sr-only">Book Meeting Room</Drawer.Title>
           <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-zinc-300 dark:bg-zinc-600" />
           <div className="max-h-[85vh] overflow-y-auto p-6">
             {children}

@@ -6,7 +6,7 @@ integrations = ["javascript_database:1.0.0"]
 [userenv]
 
 [userenv.shared]
-NEXTAUTH_URL = "https://markplus-meet.replit.dev"
+VPS_DATABASE_URL = "postgresql://meet_admin:MarkPlus2025@145.79.10.104:5432/markplus_meet"
 
 [workflows]
 runButton = "Project"
