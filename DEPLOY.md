@@ -58,6 +58,9 @@ nano .env
 Isi dengan:
 
 ```env
+# Port (default 3000, sesuaikan jika perlu)
+PORT=3001
+
 # Database
 VPS_DATABASE_URL="postgresql://USER:PASSWORD@145.79.10.104:5432/markplus_meet"
 
@@ -141,7 +144,7 @@ server {
     server_name _;
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -162,7 +165,7 @@ server {
     server_name meet.domainanda.com;
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -229,7 +232,7 @@ pm2 restart markplus-meet
 
 | Service       | Port | Keterangan                     |
 |---------------|------|--------------------------------|
-| Next.js       | 3000 | Internal (diakses via Nginx)   |
+| Next.js       | 3001 | Internal (diakses via Nginx, set PORT di .env) |
 | Nginx         | 80   | HTTP (redirect ke 443)         |
 | Nginx         | 443  | HTTPS (akses publik)           |
 | PostgreSQL    | 5432 | Database VPS                   |
@@ -274,4 +277,4 @@ pm2 monit               # monitoring PM2
 2. **Backup database** secara berkala: `pg_dump -U user markplus_meet > backup.sql`
 3. **File `.env` jangan di-commit** ke GitHub (sudah ada di .gitignore)
 4. **Ganti password default** user setelah deploy pertama kali
-5. Next.js production berjalan di **port 3000** secara default, Nginx yang handle port 80/443
+5. Next.js production akan membaca **PORT** dari `.env` (set ke 3001), Nginx yang handle port 80/443
