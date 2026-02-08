@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { Sidebar } from "./sidebar";
 import { BottomNav } from "./bottom-nav";
 import { Header } from "./header";
@@ -20,7 +21,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="h-24 md:hidden" aria-hidden="true" />
         </main>
       </div>
-      <BottomNav />
+      <Suspense>
+        <BottomNav />
+      </Suspense>
     </div>
   );
 }

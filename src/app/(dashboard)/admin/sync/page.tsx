@@ -56,14 +56,14 @@ export default function AdminSyncPage() {
   const handleSyncBookings = () => {
     startBookingTransition(async () => {
       const result = await syncFromGoogleSheet();
-      if ("error" in result) {
+      if ("error" in result && result.error) {
         toast.error(result.error);
-      } else if (result.success) {
+      } else if ("success" in result && result.success) {
         setSyncResult({
-          synced: result.synced!,
-          skipped: result.skipped!,
-          errors: result.errors!,
-          totalRows: result.totalRows!,
+          synced: result.synced,
+          skipped: result.skipped,
+          errors: result.errors,
+          totalRows: result.totalRows,
           pushedToSheet: result.pushedToSheet ?? 0,
         });
         toast.success(`Bookings synced! ${result.synced} imported, ${result.pushedToSheet ?? 0} pushed to sheet`);
@@ -74,15 +74,15 @@ export default function AdminSyncPage() {
   const handleSyncUsers = () => {
     startUserTransition(async () => {
       const result = await syncUsersFromGoogleSheet();
-      if ("error" in result) {
+      if ("error" in result && result.error) {
         toast.error(result.error);
-      } else if (result.success) {
+      } else if ("success" in result && result.success) {
         setUserSyncResult({
-          created: result.created!,
-          updated: result.updated!,
-          skipped: result.skipped!,
-          errors: result.errors!,
-          totalRows: result.totalRows!,
+          created: result.created,
+          updated: result.updated,
+          skipped: result.skipped,
+          errors: result.errors,
+          totalRows: result.totalRows,
           pushedToSheet: result.pushedToSheet ?? 0,
         });
         toast.success(`Users synced! ${result.created} created, ${result.updated} updated, ${result.pushedToSheet ?? 0} pushed to sheet`);

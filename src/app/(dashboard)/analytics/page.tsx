@@ -157,7 +157,7 @@ export default function AnalyticsPage() {
                     cx="50%"
                     cy="50%"
                     outerRadius={80}
-                    label={({ name, hours }: { name: string; hours: number }) => `${name}: ${hours}h`}
+                    label={((props: any) => `${props.name}: ${props.hours}h`) as any}
                     labelLine={false}
                   >
                     {data.roomUsage.filter((r: { hours: number }) => r.hours > 0).map((_: unknown, i: number) => (

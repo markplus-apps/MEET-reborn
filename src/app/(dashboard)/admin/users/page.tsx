@@ -330,7 +330,7 @@ export default function UserManagementPage() {
           </Drawer.Portal>
         </Drawer.Root>
       ) : (
-        <Dialog open={modalMode !== null} onOpenChange={(open) => !open && closeModal()}>
+        <Dialog open={modalMode !== null} onClose={closeModal}>
           <div className="mx-auto max-w-md">
             <DialogTitle>{modalTitle}</DialogTitle>
             <DialogDescription className="sr-only">User management form</DialogDescription>
