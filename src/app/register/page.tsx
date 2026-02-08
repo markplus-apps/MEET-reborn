@@ -32,11 +32,11 @@ export default function RegisterPage() {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Akun berhasil dibuat! Silakan masuk.");
+        toast.success("Account created! Please sign in.");
         router.push("/login");
       }
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -65,26 +65,26 @@ export default function RegisterPage() {
                 alt="MarkPlus"
                 width={56}
                 height={56}
-                className="h-14 w-auto object-contain"
-                style={{ width: "auto" }}
+                className="h-14 object-contain"
+                style={{ width: "auto", height: "auto" }}
               />
             </motion.div>
             <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-              Daftar MEET
+              Join MEET
             </h1>
             <p className="mt-1 text-sm text-zinc-400">
-              Buat akun MarkPlus Anda
+              Create your MarkPlus account
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-zinc-700">
-                Nama Lengkap
+                Full Name
               </label>
               <input
                 type="text"
-                placeholder="Masukkan nama lengkap"
+                placeholder="Enter your full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -99,7 +99,7 @@ export default function RegisterPage() {
               </label>
               <input
                 type="email"
-                placeholder="Masukkan email"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -115,7 +115,7 @@ export default function RegisterPage() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Minimal 6 karakter"
+                  placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -145,18 +145,18 @@ export default function RegisterPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Membuat akun...
+                  Creating account...
                 </span>
               ) : (
-                "Buat Akun"
+                "Create Account"
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <span className="text-sm text-zinc-400">Sudah punya akun? </span>
+            <span className="text-sm text-zinc-400">Already have an account? </span>
             <Link href="/login" className="text-sm font-semibold text-violet-600 transition-colors hover:text-violet-700">
-              Masuk
+              Sign In
             </Link>
           </div>
         </div>
@@ -168,8 +168,8 @@ export default function RegisterPage() {
             alt="MarkPlus, Inc."
             width={20}
             height={20}
-            className="h-5 w-auto opacity-40"
-            style={{ width: "auto" }}
+            className="opacity-40"
+            style={{ width: "20px", height: "20px" }}
           />
           <span className="text-xs font-medium text-zinc-400">MarkPlus, Inc.</span>
         </div>

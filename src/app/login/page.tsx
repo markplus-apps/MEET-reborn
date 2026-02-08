@@ -28,14 +28,14 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        toast.error("Email atau password salah");
+        toast.error("Invalid email or password");
       } else {
-        toast.success("Selamat datang!");
+        toast.success("Welcome back!");
         router.push("/dashboard");
         router.refresh();
       }
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -64,8 +64,8 @@ export default function LoginPage() {
                 alt="MarkPlus"
                 width={56}
                 height={56}
-                className="h-14 w-auto object-contain"
-                style={{ width: "auto" }}
+                className="h-14 object-contain"
+                style={{ width: "auto", height: "auto" }}
               />
             </motion.div>
             <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
@@ -83,7 +83,7 @@ export default function LoginPage() {
               </label>
               <input
                 type="email"
-                placeholder="Masukkan email"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -99,7 +99,7 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Masukkan password"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -128,18 +128,18 @@ export default function LoginPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Masuk...
+                  Signing in...
                 </span>
               ) : (
-                "Masuk"
+                "Sign In"
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <span className="text-sm text-zinc-400">Belum punya akun? </span>
+            <span className="text-sm text-zinc-400">Don&apos;t have an account? </span>
             <Link href="/register" className="text-sm font-semibold text-violet-600 transition-colors hover:text-violet-700">
-              Daftar
+              Register
             </Link>
           </div>
         </div>
@@ -151,8 +151,8 @@ export default function LoginPage() {
             alt="MarkPlus, Inc."
             width={20}
             height={20}
-            className="h-5 w-auto opacity-40"
-            style={{ width: "auto" }}
+            className="opacity-40"
+            style={{ width: "20px", height: "20px" }}
           />
           <span className="text-xs font-medium text-zinc-400">MarkPlus, Inc.</span>
         </div>
