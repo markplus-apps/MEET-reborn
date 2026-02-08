@@ -73,7 +73,7 @@ export default function AnalyticsPage() {
           <Card glass>
             <h3 className="mb-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Daily Bookings (30 days)</h3>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <AreaChart data={data.dailyData}>
                   <defs>
                     <linearGradient id="colorBookings" x1="0" y1="0" x2="0" y2="1">
@@ -102,7 +102,7 @@ export default function AnalyticsPage() {
           <Card glass>
             <h3 className="mb-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Room Usage (Bookings Count)</h3>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={data.roomUsage} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
                   <XAxis type="number" tick={{ fontSize: 10 }} stroke="#a1a1aa" />
@@ -125,7 +125,7 @@ export default function AnalyticsPage() {
           <Card glass>
             <h3 className="mb-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Peak Hours</h3>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={data.hourlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
                   <XAxis dataKey="hour" tick={{ fontSize: 10 }} stroke="#a1a1aa" />
@@ -148,7 +148,7 @@ export default function AnalyticsPage() {
           <Card glass>
             <h3 className="mb-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Room Hours (Total)</h3>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <PieChart>
                   <Pie
                     data={data.roomUsage.filter((r: { hours: number }) => r.hours > 0)}
