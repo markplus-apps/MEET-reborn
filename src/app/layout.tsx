@@ -27,10 +27,6 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL || "https://meet.markplusinc.com"),
   title: "MEET - MarkPlus Meeting Room Booking",
   description: "Elevate your meeting experience. Smart room booking, seamless scheduling, and real-time availability — all in one elegant platform by MarkPlus.",
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
   openGraph: {
     title: "MEET by MarkPlus",
     description: "Elevate your meeting experience. Smart room booking, seamless scheduling, and real-time availability — all in one elegant platform.",

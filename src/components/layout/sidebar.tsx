@@ -48,7 +48,7 @@ export function Sidebar() {
               className="flex items-center gap-2"
             >
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-md dark:bg-zinc-800">
-                <Image src="/logo.png" alt="MCorp" width={28} height={28} className="object-contain" />
+                <Image src="/logo.png" alt="MCorp" width={28} height={28} className="object-contain" style={{ width: "auto", height: "auto" }} />
               </div>
               <div>
                 <h1 className="text-base font-bold tracking-tight text-zinc-900 dark:text-zinc-100">

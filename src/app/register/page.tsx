@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
 import { registerUser } from "@/actions/auth";
 
@@ -14,6 +13,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -32,81 +32,146 @@ export default function RegisterPage() {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Account created! Please sign in.");
+        toast.success("Akun berhasil dibuat! Silakan masuk.");
         router.push("/login");
       }
     } catch {
-      toast.error("Something went wrong");
+      toast.error("Terjadi kesalahan");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-zinc-50 p-4 dark:bg-zinc-950">
-      <div className="absolute -left-40 -top-40 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl" />
-      <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-purple-500/20 blur-3xl" />
+    <div className="relative flex min-h-dvh items-center justify-center bg-white p-4">
+      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-violet-50/60 to-transparent" />
 
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative w-full max-w-md"
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="relative w-full max-w-[380px]"
       >
-        <div className="mb-8 text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
-            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 shadow-xl shadow-violet-500/30"
-          >
-            <Sparkles className="h-8 w-8 text-white" />
-          </motion.div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-            Join <span className="gradient-text">MEET</span>
-          </h1>
-          <p className="mt-2 text-sm text-zinc-500">Create your MarkPlus account</p>
-        </div>
+        <div className="rounded-3xl border border-zinc-100 bg-white px-8 py-10 shadow-xl shadow-zinc-200/40">
+          <div className="mb-8 flex flex-col items-center">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", bounce: 0.3, delay: 0.1 }}
+              className="mb-4"
+            >
+              <Image
+                src="/logo.png"
+                alt="MarkPlus"
+                width={56}
+                height={56}
+                className="h-14 w-auto object-contain"
+                style={{ width: "auto" }}
+              />
+            </motion.div>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+              Daftar MEET
+            </h1>
+            <p className="mt-1 text-sm text-zinc-400">
+              Buat akun MarkPlus Anda
+            </p>
+          </div>
 
-        <div className="rounded-2xl border border-zinc-200/60 bg-white/70 p-8 shadow-xl shadow-black/5 backdrop-blur-xl dark:border-zinc-700/60 dark:bg-zinc-900/70">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Full Name"
-              type="text"
-              placeholder="Your full name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-            <Input
-              label="Email"
-              type="email"
-              placeholder="you@markplus.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <Input
-              label="Password"
-              type="password"
-              placeholder="At least 6 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              minLength={6}
-              required
-            />
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Creating account..." : "Create Account"}
-              <ArrowRight className="ml-1 h-4 w-4" />
-            </Button>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-zinc-700">
+                Nama Lengkap
+              </label>
+              <input
+                type="text"
+                placeholder="Masukkan nama lengkap"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoComplete="name"
+                className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-zinc-700">
+                Email
+              </label>
+              <input
+                type="email"
+                placeholder="Masukkan email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-zinc-700">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Minimal 6 karakter"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                  className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 pr-12 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-zinc-400 transition-colors hover:text-zinc-600"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-[18px] w-[18px]" /> : <Eye className="h-[18px] w-[18px]" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="relative h-12 w-full overflow-hidden rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-sm font-semibold text-white shadow-lg shadow-violet-200/50 transition-all hover:shadow-xl hover:shadow-violet-300/50 active:scale-[0.98] disabled:opacity-60"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Membuat akun...
+                </span>
+              ) : (
+                "Buat Akun"
+              )}
+            </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-zinc-500">
-            Already have an account?{" "}
-            <Link href="/login" className="font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400">
-              Sign In
+          <div className="mt-6 text-center">
+            <span className="text-sm text-zinc-400">Sudah punya akun? </span>
+            <Link href="/login" className="text-sm font-semibold text-violet-600 transition-colors hover:text-violet-700">
+              Masuk
             </Link>
           </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-center gap-2">
+          <span className="text-xs text-zinc-400">Powered by</span>
+          <Image
+            src="/logo.png"
+            alt="MarkPlus, Inc."
+            width={20}
+            height={20}
+            className="h-5 w-auto opacity-40"
+            style={{ width: "auto" }}
+          />
+          <span className="text-xs font-medium text-zinc-400">MarkPlus, Inc.</span>
         </div>
       </motion.div>
     </div>
