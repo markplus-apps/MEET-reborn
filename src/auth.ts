@@ -61,5 +61,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: "/login",
   },
+  trustHost: true,
   secret: process.env.SESSION_SECRET || process.env.NEXTAUTH_SECRET || "markplus-meet-secret-key",
 });
