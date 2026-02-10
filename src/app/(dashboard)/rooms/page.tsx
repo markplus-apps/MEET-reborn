@@ -107,6 +107,7 @@ export default function RoomsPage() {
 
   useEffect(() => {
     setActiveTab(tabParam);
+    if (tabParam === "schedule") setDateStripVisible(true);
   }, [tabParam]);
   const [mounted, setMounted] = useState(false);
 
@@ -116,6 +117,32 @@ export default function RoomsPage() {
 
   return (
     <div className="space-y-4 p-4 md:space-y-6 md:p-6">
+      <div className="flex justify-center md:hidden">
+        <div className="flex rounded-xl border border-zinc-200/80 bg-white/80 p-1 backdrop-blur-sm dark:border-zinc-700/60 dark:bg-zinc-800/80">
+          {(["rooms", "schedule"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => { setActiveTab(tab); if (tab === "schedule") setDateStripVisible(true); }}
+              className={cn(
+                "relative rounded-lg px-5 py-2 text-sm font-medium transition-all duration-200",
+                activeTab === tab
+                  ? "text-violet-700 dark:text-violet-300"
+                  : "text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+              )}
+            >
+              {activeTab === tab && (
+                <motion.div
+                  layoutId="mobileRoomsTab"
+                  className="absolute inset-0 rounded-lg bg-violet-100/80 dark:bg-violet-900/30"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                />
+              )}
+              <span className="relative z-10">{tab === "rooms" ? "Rooms" : "Schedule"}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}

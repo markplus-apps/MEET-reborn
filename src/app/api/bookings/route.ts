@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
     include: {
       room: true,
       user: { select: { id: true, name: true, email: true, role: true } },
+      lastModifiedBy: { select: { id: true, name: true, email: true } },
     },
     orderBy: { startTime: "asc" },
   });

@@ -96,7 +96,7 @@ export function BottomNav() {
       setRoomsSubOpen(!roomsSubOpen);
       setMoreOpen(false);
     } else {
-      setRoomsSubOpen(false);
+      setMoreOpen(false);
     }
   };
 

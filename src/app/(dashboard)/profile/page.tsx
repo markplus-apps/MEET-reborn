@@ -104,7 +104,7 @@ export default function ProfilePage() {
   const displayEmail = profile?.email || session?.user?.email || "";
   const avatarValue = profile?.avatar || "";
   const isGradientAvatar = avatarValue.startsWith("bg-gradient");
-  const isImageAvatar = avatarValue.startsWith("/") || avatarValue.startsWith("http");
+  const isImageAvatar = avatarValue.startsWith("/") || avatarValue.startsWith("http") || avatarValue.startsWith("data:");
 
   return (
     <div className="space-y-4 p-4 md:space-y-6 md:p-6">

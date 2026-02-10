@@ -81,6 +81,9 @@ export async function createBooking(data: {
       roomId: data.roomId,
       userId: session.user.id,
       status: "CONFIRMED",
+      lastModifiedById: session.user.id,
+      lastAction: "CREATED",
+      lastActionAt: new Date(),
     },
     include: {
       room: true,
@@ -124,7 +127,12 @@ export async function cancelBooking(bookingId: string) {
 
   const updated = await prisma.booking.update({
     where: { id: bookingId },
-    data: { status: "CANCELLED" },
+    data: {
+      status: "CANCELLED",
+      lastModifiedById: session.user.id,
+      lastAction: "CANCELLED",
+      lastActionAt: new Date(),
+    },
     include: { room: true, user: true },
   });
 
@@ -191,7 +199,12 @@ export async function extendBooking(bookingId: string, newEndTime: string) {
 
   await prisma.booking.update({
     where: { id: bookingId },
-    data: { endTime },
+    data: {
+      endTime,
+      lastModifiedById: session.user.id,
+      lastAction: "EXTENDED",
+      lastActionAt: new Date(),
+    },
   });
 
   revalidateAll();
@@ -226,7 +239,12 @@ export async function endBookingEarly(bookingId: string) {
 
   await prisma.booking.update({
     where: { id: bookingId },
-    data: { endTime: now },
+    data: {
+      endTime: now,
+      lastModifiedById: session.user.id,
+      lastAction: "ENDED_EARLY",
+      lastActionAt: new Date(),
+    },
   });
 
   revalidateAll();
@@ -315,6 +333,9 @@ export async function modifyBooking(bookingId: string, data: {
       endTime,
       roomId: targetRoomId,
       participantCount,
+      lastModifiedById: session.user.id,
+      lastAction: "MODIFIED",
+      lastActionAt: new Date(),
     },
     include: { room: true, user: true },
   });
@@ -365,7 +386,12 @@ export async function checkInBooking(bookingId: string) {
 
   await prisma.booking.update({
     where: { id: bookingId },
-    data: { checkInStatus: "CHECKED_IN" },
+    data: {
+      checkInStatus: "CHECKED_IN",
+      lastModifiedById: session.user.id,
+      lastAction: "CHECKED_IN",
+      lastActionAt: new Date(),
+    },
   });
 
   revalidateAll();

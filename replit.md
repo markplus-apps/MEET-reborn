@@ -72,11 +72,13 @@ prisma/
   - Philip Kotler Classroom (150p), MarkPlus Gallery (100p), Museum of Marketing (50p)
 - **3 Roles**: EMPLOYEE (public rooms only), ADMIN (all rooms), SUPER_ADMIN (all rooms + management)
 - **Unified Rooms Page**: Tab switcher (Rooms grid + Schedule daily view)
+  - Mobile: Inline tab switcher (Rooms/Schedule) visible immediately on page load
   - Rooms tab: Search/filter, real-time availability badges, room cards with occupancy status
-  - Schedule tab: Daily view with date nav, room filters, clickable booking rows
+  - Schedule tab: Daily view with date nav, room filters, clickable booking rows; date strip always visible
   - Booking Action Sheet: Tap booking → bottom sheet (mobile) / dialog (desktop) with Modify/Extend/Cancel/Check-in/End Early (role-based)
 - **Visual Timeline**: Flexible time picker, 7 AM - 9 PM WIB, color-coded
 - **Booking Actions**: Create, Modify/Reschedule, Extend, End Early, Cancel, Check-in
+- **Audit Trail**: Every booking action records who performed it (lastModifiedById, lastAction, lastActionAt)
 - **Conflict Prevention**: Server-side overlap detection
 - **Real-time**: Per-query 30-60 second polling (disabled when modals open)
 - **Responsive Modal**: Desktop = centered Dialog, Mobile = Bottom Sheet (vaul Drawer)

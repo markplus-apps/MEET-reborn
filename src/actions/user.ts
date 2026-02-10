@@ -145,7 +145,7 @@ export async function updateProfile(data: {
   const updateData: Record<string, unknown> = {};
   if (data.name !== undefined) updateData.name = data.name.slice(0, 100);
   if (data.avatar !== undefined) {
-    if (data.avatar === "" || data.avatar.startsWith("/uploads/avatars/") || allowedGradients.includes(data.avatar)) {
+    if (data.avatar === "" || data.avatar.startsWith("/uploads/avatars/") || data.avatar.startsWith("data:image/") || allowedGradients.includes(data.avatar)) {
       updateData.avatar = data.avatar;
     }
   }
